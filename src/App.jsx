@@ -7,6 +7,7 @@ const PokemonCardsSheet = () => {
   const [filterSet, setFilterSet] = useState('all');
   const [filterRarity, setFilterRarity] = useState('all');
   const [checkedCards, setCheckedCards] = useState(new Set());
+  const [hoveredCard, setHoveredCard] = useState(null);
 
   const sets = ['all', ...new Set(cardsData.map(card => card.set))].sort();
   const rarities = ['all', 'Holo', 'Ultra Rare', 'Rare', 'Uncommon', 'Common'];
@@ -90,22 +91,20 @@ const PokemonCardsSheet = () => {
     link.href = URL.createObjectURL(blob);
     link.download = 'cartes_pokemon_recherchees.csv';
     link.click();
-    
   };
-const generateEbayRSSFeeds = () => {
-  // Generate RSS feeds for first 150 cards only
-  const feeds = cardsData.slice(0, 150).map(card => {
-    const searchQuery = `Pokémon ${card.name} ${card.number.replace('/', ' ')}`;
-    const rssUrl = `https://www.ebay.fr/sch/i.html?_rss=1&_nkw=${encodeURIComponent(searchQuery)}`;
-    return {
-      title: `${card.name} (${card.number}) - ${card.set}`,
-      url: rssUrl,
-      category: card.set
-    };
-  });
 
-  // Create OPML file (RSS subscription format)
-  const opmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+  const generateEbayRSSFeeds = () => {
+    const feeds = cardsData.slice(0, 150).map(card => {
+      const searchQuery = `Pokémon ${card.name} ${card.number.replace('/', ' ')}`;
+      const rssUrl = `https://www.ebay.fr/sch/i.html?_rss=1&_nkw=${encodeURIComponent(searchQuery)}`;
+      return {
+        title: `${card.name} (${card.number}) - ${card.set}`,
+        url: rssUrl,
+        category: card.set
+      };
+    });
+
+    const opmlContent = `<?xml version="1.0" encoding="UTF-8"?>
     <opml version="2.0">
       <head>
         <title>Cartes Pokémon eBay Feeds (150 premières)</title>
@@ -117,12 +116,12 @@ const generateEbayRSSFeeds = () => {
       </body>
     </opml>`;
 
-  const blob = new Blob([opmlContent], { type: 'text/xml' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'pokemon_cards_ebay_feeds.opml';
-  link.click();
-};
+    const blob = new Blob([opmlContent], { type: 'text/xml' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'pokemon_cards_ebay_feeds.opml';
+    link.click();
+  };
 
   return (
     <div className="w-full min-h-screen bg-gray-50" style={{ paddingLeft: '100px', paddingTop: '20px', paddingRight: '20px' }}>
@@ -144,7 +143,7 @@ const generateEbayRSSFeeds = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2" style={{ paddingTop: '10px', paddingBottom: '10px' }}>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Search className="inline w-4 h-4 mr-1 " />
+                <Search className="inline w-4 h-4 mr-1" />
                 Recherche
               </label>
               <input
@@ -216,34 +215,20 @@ const generateEbayRSSFeeds = () => {
             <table className="w-full">
               <thead className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                 <tr>
-                  <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider w-16">
-                    
-                  </th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">
-                    Obtenu
-                  </th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">
-                    Code
-                  </th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">
-                    Numéro
-                  </th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">
-                    Nom
-                  </th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">
-                    Rareté
-                  </th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">
-                    Prix eBay
-                  </th>
+                  <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider w-16"></th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Obtenu</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Code</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Numéro</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Nom</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Rareté</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Prix eBay</th>
                 </tr>
               </thead>
               <tbody>
                 {Object.entries(groupedCards).map(([setName, cards]) => (
                   <React.Fragment key={setName}>
                     {/* En-tête d'extension */}
-                     <tr className="bg-gradient-to-r from-indigo-100 to-purple-100 border-t-4 border-indigo-500">
+                    <tr className="bg-gradient-to-r from-indigo-100 to-purple-100 border-t-4 border-indigo-500">
                       <td className="px-3 py-4 align-middle text-center">
                         {setImageMap[cards[0].setCode] && (
                           <img 
@@ -255,7 +240,7 @@ const generateEbayRSSFeeds = () => {
                         )}
                       </td>
                       <td colSpan="6" className="py-4" style={{ textAlign: 'center' }}>
-                        <span className="text-base md:text-lg font-extrabold text-indigo-900">
+                        <span className="text-base md:text-lg font-extrabold text-indigo-900" style={{ fontWeight: 'bold' }}>
                           {setName}
                         </span>
                       </td>
@@ -278,7 +263,11 @@ const generateEbayRSSFeeds = () => {
                         <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 font-mono">
                           {card.number}
                         </td>
-                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900">
+                        <td 
+                          className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900 relative"
+                          onMouseEnter={() => setHoveredCard(card)}
+                          onMouseLeave={() => setHoveredCard(null)}
+                        >
                           <a 
                             href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`}
                             target="_blank"
@@ -301,12 +290,12 @@ const generateEbayRSSFeeds = () => {
                         </td>
                         <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
                           <button
-                            onClick={(e) => {
+                            onClick={() => {
                               window.open(`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`, '_blank');
                             }}
                             onMouseDown={(e) => {
-                              if (e.button === 1) { // Middle mouse button
-                                e.preventDefault(); // Prevent scroll icon
+                              if (e.button === 1) {
+                                e.preventDefault();
                                 window.open(`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`, '_blank');
                               }
                             }}
@@ -357,15 +346,41 @@ const generateEbayRSSFeeds = () => {
             </div>
           </div>
         </div>
-
-        {/* Note d'information */}
-        <div className="mt-6 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-          <p className="text-sm text-blue-800">
-            <strong>💡 Note :</strong> Les cartes sont maintenant organisées par extension avec leurs logos. 
-            Utilisez les filtres pour naviguer facilement et le bouton d'export pour sauvegarder en CSV.
-          </p>
-        </div>
       </div>
+
+      {/* Card Preview Tooltip */}
+      {hoveredCard && hoveredCard.imageUrl && (
+        <div style={{
+          position: 'fixed',
+          right: '700px',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          zIndex: 9999,
+          pointerEvents: 'none'
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '4px solid #FBBF24',
+            padding: '8px'
+          }}>
+            <img 
+              src={hoveredCard.imageUrl}
+              alt={hoveredCard.name}
+              style={{ 
+                width: '400px', 
+                height: 'auto',
+                borderRadius: '4px',
+                display: 'block'
+              }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
