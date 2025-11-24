@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Download, Search, Filter } from 'lucide-react';
 import cardsData from './cardsData.js'
+import cachedPricesData from './priceCache.json';
 
 const PokemonCardsSheet = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,15 +45,9 @@ const PokemonCardsSheet = () => {
     'NG': 'https://www.pokecardex.com/assets/images/symboles/minis/NG.png'
   };
 
-  React.useEffect(() => {
-  // Load all cached prices on mount
-  fetch('http://localhost:3001/api/all-prices')
-    .then(res => res.json())
-    .then(data => {
-      console.log('Loaded cached prices:', data);
-      setCachedPrices(data);
-    })
-    .catch(err => console.error('Error loading cached prices:', err));
+ React.useEffect(() => {
+  console.log('Loaded cached prices:', cachedPricesData);
+  setCachedPrices(cachedPricesData);
 }, []);
 
 const getCachedPrice = (card) => {
