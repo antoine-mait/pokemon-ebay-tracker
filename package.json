@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.1",
   "type": "module",
-  "homepage": "https://antoine-mait.github.io/pokemon-ebay-tracker",
+  "homepage": "https://antoine-mait.github.io/pokemon-ebay-tracker/",
   "scripts": {
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
