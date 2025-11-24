@@ -22,7 +22,8 @@ async function loadPriceCache() {
     const data = await fs.readFile(PRICE_CACHE_FILE, 'utf8');
     priceCache = JSON.parse(data);
     console.log(`📦 Loaded ${Object.keys(priceCache).length} cached prices`);
-  } catch (error) {
+  } catch {
+    // Remove (error) parameter since we don't use it
     console.log('📦 No price cache found, starting fresh');
     priceCache = {};
   }

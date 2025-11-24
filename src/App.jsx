@@ -10,8 +10,6 @@ const PokemonCardsSheet = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [ebayPrices, setEbayPrices] = useState({});
-  const [loadingPrices, setLoadingPrices] = useState({});
   const [cachedPrices, setCachedPrices] = useState({});
 
   const sets = ['all', ...new Set(cardsData.map(card => card.set))].sort();
@@ -143,32 +141,6 @@ const getCachedPrice = (card) => {
     link.download = 'pokemon_cards_ebay_feeds.opml';
     link.click();
   };
-
-const fetchEbayPrice = async (card, cardIndex) => {
-  if (ebayPrices[cardIndex] || loadingPrices[cardIndex]) return;
-  
-  setLoadingPrices(prev => ({ ...prev, [cardIndex]: true }));
-  
-  try {
-    const searchQuery = `Pokémon ${card.name} ${card.number.replace('/', ' ')}`;
-    const response = await fetch(`http://localhost:3001/api/ebay-price?query=${encodeURIComponent(searchQuery)}`);
-    
-    if (!response.ok) throw new Error('Failed to fetch');
-    
-    const data = await response.json();
-    if (response.status === 429) {
-        setEbayPrices(prev => ({ ...prev, [cardIndex]: 'Patientez...' }));
-        setTimeout(() => fetchEbayPrice(card, cardIndex), 3000);
-        return;
-      }
-    setEbayPrices(prev => ({ ...prev, [cardIndex]: data.price }));
-  } catch (error) {
-    console.error('Error fetching eBay price:', error);
-    setEbayPrices(prev => ({ ...prev, [cardIndex]: 'Erreur' }));
-  } finally {
-    setLoadingPrices(prev => ({ ...prev, [cardIndex]: false }));
-  }
-};
 
 const calculateTotalPrice = () => {
   let total = 0;
