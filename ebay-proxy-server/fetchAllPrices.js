@@ -1,118 +1,407 @@
-require('dotenv').config();
-const axios = require('axios');
-const fs = require('fs').promises;
-const path = require('path');
+import React, { useState } from 'react';
+import { Download, Search, Filter } from 'lucide-react';
+import cardsData from './cardsData.js'
+import cachedPricesData from './priceCache.json';
 
-const EBAY_APP_ID = process.env.EBAY_APP_ID;
-const EBAY_CERT_ID = process.env.EBAY_CERT_ID;
-const PRICE_CACHE_FILE = path.join(__dirname, 'priceCache.json');
+const PokemonCardsSheet = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterSet, setFilterSet] = useState('all');
+  const [filterRarity, setFilterRarity] = useState('all');
+  const [checkedCards, setCheckedCards] = useState(new Set());
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  const [cachedPrices, setCachedPrices] = useState({});
 
-// Import your cards data - adjust path if needed
-const cardsData = require('../src/cardsData.js').default || require('../src/cardsData.js');
+  const sets = ['all', ...new Set(cardsData.map(card => card.set))].sort();
+  const rarities = ['all', 'Holo', 'Ultra Rare', 'Rare', 'Uncommon', 'Common'];
 
-let cachedToken = null;
-let tokenExpiry = null;
+  // Mapping des codes d'extension vers les URLs des images
+  const setImageMap = {
+    'MT': 'https://www.pokecardex.com/assets/images/symboles/minis/MT.png',
+    'DP': 'https://www.pokecardex.com/assets/images/symboles/minis/DP.png',
+    'PROMO': 'https://www.pokecardex.com/assets/images/symboles/minis/PROMO.png',
+    'PK': 'https://www.pokecardex.com/assets/images/symboles/minis/PK.png',
+    'DF': 'https://www.pokecardex.com/assets/images/symboles/minis/DF.png',
+    'CG': 'https://www.pokecardex.com/assets/images/symboles/minis/CG.png',
+    'HP': 'https://www.pokecardex.com/assets/images/symboles/minis/HP.png',
+    'LM': 'https://www.pokecardex.com/assets/images/symboles/minis/LM.png',
+    'DS': 'https://www.pokecardex.com/assets/images/symboles/minis/DS.png',
+    'UF': 'https://www.pokecardex.com/assets/images/symboles/minis/UF.png',
+    'EM': 'https://www.pokecardex.com/assets/images/symboles/minis/EM.png',
+    'DX': 'https://www.pokecardex.com/assets/images/symboles/minis/DX.png',
+    'RFVF': 'https://www.pokecardex.com/assets/images/symboles/minis/RFVF.png',
+    'HL': 'https://www.pokecardex.com/assets/images/symboles/minis/HL.png',
+    'TMTA': 'https://www.pokecardex.com/assets/images/symboles/minis/TMTA.png',
+    'DR': 'https://www.pokecardex.com/assets/images/symboles/minis/DR.png',
+    'SS': 'https://www.pokecardex.com/assets/images/symboles/minis/SS.png',
+    'RS': 'https://www.pokecardex.com/assets/images/symboles/minis/RS.png',
+    'SK': 'https://www.pokecardex.com/assets/images/symboles/minis/SK.png',
+    'AQ': 'https://www.pokecardex.com/assets/images/symboles/minis/AQ.png',
+    'EX': 'https://www.pokecardex.com/assets/images/symboles/minis/EX.png',
+    'N4': 'https://www.pokecardex.com/assets/images/symboles/minis/N4.png',
+    'NR': 'https://www.pokecardex.com/assets/images/symboles/minis/NR.png',
+    'ND': 'https://www.pokecardex.com/assets/images/symboles/minis/ND.png',
+    'NG': 'https://www.pokecardex.com/assets/images/symboles/minis/NG.png'
+  };
 
-async function getEbayToken() {
-  if (cachedToken && tokenExpiry && Date.now() < tokenExpiry) {
-    return cachedToken;
-  }
+  React.useEffect(() => {
+    console.log('Loaded cached prices:', cachedPricesData);
+    setCachedPrices(cachedPricesData);
+  }, []);
 
-  const credentials = Buffer.from(`${EBAY_APP_ID}:${EBAY_CERT_ID}`).toString('base64');
-  
-  const { data } = await axios.post(
-    'https://api.ebay.com/identity/v1/oauth2/token',
-    'grant_type=client_credentials&scope=https://api.ebay.com/oauth/api_scope',
-    {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${credentials}`
-      }
+  const getCachedPrice = (card) => {
+    const searchQuery = `Pokémon ${card.name} ${card.number.replace('/', ' ')}`;
+    return cachedPrices[searchQuery] || 'N/A';
+  };
+
+  const filteredCards = cardsData.filter(card => {
+    const matchesSearch = card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        card.number.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSet = filterSet === 'all' || card.set === filterSet;
+    const matchesRarity = filterRarity === 'all' || card.rarity === filterRarity;
+    return matchesSearch && matchesSet && matchesRarity;
+  });
+
+  // Grouper les cartes par extension
+  const groupedCards = filteredCards.reduce((acc, card, index) => {
+    const setName = card.set;
+    if (!acc[setName]) {
+      acc[setName] = [];
     }
-  );
-  
-  cachedToken = data.access_token;
-  tokenExpiry = Date.now() + (7000 * 1000);
-  return cachedToken;
-}
+    acc[setName].push({ ...card, originalIndex: index });
+    return acc;
+  }, {});
 
-async function fetchPrice(card, index, total) {
-  const searchQuery = `Pokémon ${card.name} ${card.number.replace('/', ' ')}`;
-  
-  try {
-    const token = await getEbayToken();
-    const apiUrl = 'https://api.ebay.com/buy/browse/v1/item_summary/search';
+  const handleCheckboxChange = (cardIndex) => {
+    setCheckedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(cardIndex)) {
+        newSet.delete(cardIndex);
+      } else {
+        newSet.add(cardIndex);
+      }
+      return newSet;
+    });
+  };
+
+  const exportToCSV = () => {
+    const headers = ['Extension', 'Code', 'Numero', 'Nom', 'Rarete'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredCards.map(card => 
+        [
+          `"${card.set}"`,
+          card.setCode,
+          card.number,
+          `"${card.name}"`,
+          card.rarity
+        ].join(',')
+      )
+    ].join('\n');
     
-    const { data } = await axios.get(apiUrl, {
-      params: {
-        q: searchQuery,
-        limit: 10,
-        filter: 'buyingOptions:{FIXED_PRICE}',
-        sort: 'price'
-      },
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'X-EBAY-C-MARKETPLACE-ID': 'EBAY_FR',
-        'X-EBAY-C-ENDUSERCTX': 'contextualLocation=country=FR'
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'cartes_pokemon_recherchees.csv';
+    link.click();
+  };
+
+  const generateEbayRSSFeeds = () => {
+    const feeds = cardsData.slice(0, 150).map(card => {
+      const searchQuery = `Pokémon ${card.name} ${card.number.replace('/', ' ')}`;
+      const rssUrl = `https://www.ebay.fr/sch/i.html?_rss=1&_nkw=${encodeURIComponent(searchQuery)}`;
+      return {
+        title: `${card.name} (${card.number}) - ${card.set}`,
+        url: rssUrl,
+        category: card.set
+      };
+    });
+
+    const opmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+    <opml version="2.0">
+      <head>
+        <title>Cartes Pokémon eBay Feeds (150 premières)</title>
+      </head>
+      <body>
+        <outline text="Cartes Pokémon" title="Cartes Pokémon">
+    ${feeds.map(feed => `      <outline type="rss" text="${feed.title}" title="${feed.title}" xmlUrl="${feed.url}" htmlUrl="${feed.url}"/>`).join('\n')}
+        </outline>
+      </body>
+    </opml>`;
+
+    const blob = new Blob([opmlContent], { type: 'text/xml' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'pokemon_cards_ebay_feeds.opml';
+    link.click();
+  };
+
+  const calculateTotalPrice = () => {
+    let total = 0;
+    let count = 0;
+    
+    filteredCards.forEach(card => {
+      const price = getCachedPrice(card);
+      if (price !== 'N/A' && price !== 'Erreur') {
+        const numericPrice = parseFloat(price.replace(/[^\d.,]/g, '').replace(',', '.'));
+        if (!isNaN(numericPrice)) {
+          total += numericPrice;
+          count++;
+        }
       }
     });
     
-    if (data.itemSummaries && data.itemSummaries.length > 0) {
-       const prices = data.itemSummaries
-        .map(item => item.price?.value)
-        .filter(price => price != null)
-        .map(price => parseFloat(price));
-      
-      if (prices.length > 0) {
-        const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
-        const currency = data.itemSummaries[0].price?.currency;
-        
-        // Check if price is over 200€
-        if (averagePrice > 200) {
-          console.log(`[${index + 1}/${total}] 💰 ${card.name}: In your dream (${averagePrice.toFixed(2)} ${currency === 'EUR' ? '€' : currency})`);
-          return { query: searchQuery, price: 'In your dream' };
-        }
-        
-        const formattedPrice = `${averagePrice.toFixed(2)} ${currency === 'EUR' ? '€' : currency}`;
-        console.log(`[${index + 1}/${total}] ✅ ${card.name}: ${formattedPrice} (avg of ${prices.length} listings)`);
-        return { query: searchQuery, price: formattedPrice };
-      }
-    }
-    
-    console.log(`[${index + 1}/${total}] ⚠️  ${card.name}: No price found`);
-    return { query: searchQuery, price: 'N/A' };
-    
-  } catch (error) {
-    console.error(`[${index + 1}/${total}] ❌ ${card.name}: Error -`, error.message);
-    return { query: searchQuery, price: 'Erreur' };
-  }
-}
+    return count > 0 ? `${total.toFixed(2)} €` : 'N/A';
+  };
 
-async function fetchAllPrices() {
-  console.log(`🚀 Starting to fetch prices for ${cardsData.length} cards...`);
-  
-  const priceCache = {};
-  
-  for (let i = 0; i < cardsData.length; i++) {
-    const result = await fetchPrice(cardsData[i], i, cardsData.length);
-    priceCache[result.query] = result.price;
-    
-    // Save progress every 10 cards
-    if ((i + 1) % 10 === 0) {
-      await fs.writeFile(PRICE_CACHE_FILE, JSON.stringify(priceCache, null, 2));
-      console.log(`💾 Progress saved (${i + 1}/${cardsData.length})\n`);
-    }
-    
-    // Wait 5 seconds between requests to respect rate limits
-    if (i < cardsData.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-  }
-  
-  // Final save
-  await fs.writeFile(PRICE_CACHE_FILE, JSON.stringify(priceCache, null, 2));
-  console.log('\n✅ All prices fetched and saved!');
-  console.log(`📊 Total: ${cardsData.length} cards processed`);
-}
+  return (
+    <div className={`w-full min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`} style={{ paddingLeft: '100px', paddingTop: '20px', paddingRight: '20px' }}>
+      {/* Theme Toggle Button */}
+      <button
+        onClick={() => setIsDarkMode(!isDarkMode)}
+        className={`fixed top-4 right-4 z-50 p-3 rounded-full shadow-lg transition-colors ${
+          isDarkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-white text-gray-800 hover:bg-gray-100 border-2 border-gray-300'
+        }`}
+        title={isDarkMode ? 'Mode clair' : 'Mode sombre'}
+      >
+        {isDarkMode ? '☀️' : '🌙'}
+      </button>
 
-fetchAllPrices().catch(console.error);
+      <div className="max-w-7xl mx-auto">
+        {/* En-tête */}
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 md:p-6 mb-4 md:mb-6`}>
+          <h1 className={`text-2xl md:text-3xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>
+            🎴 Cartes Pokémon Recherchées
+          </h1>
+          <p className={`text-sm md:text-base ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Mise à jour : 23 novembre 2025
+          </p>
+          <p className={`text-lg font-semibold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} mt-2`}>
+            Total : {filteredCards.length} cartes
+            {checkedCards.size > 0 && ` • ${checkedCards.size} cochée(s)`}
+            {' • Prix total : '}
+            <span className={calculateTotalPrice() !== 'N/A' ? (isDarkMode ? 'text-green-400' : 'text-green-600') : ''}>
+              {calculateTotalPrice()}
+            </span>
+          </p>
+        </div>
+
+        {/* Filtres et recherche */}
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 md:p-6 mb-4 md:mb-6`}>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-2" style={{ paddingTop: '10px', paddingBottom: '10px' }}>
+              <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                <Search className="inline w-4 h-4 mr-1" />
+                Recherche
+              </label>
+              <input
+                type="text"
+                placeholder="Nom ou numéro de carte..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={`w-full px-4 py-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
+              />
+            </div>
+            
+            <div style={{ paddingTop: '10px', paddingBottom: '10px' }}>
+              <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                <Filter className="inline w-4 h-4 mr-1" />
+                Extension
+              </label>
+              <select
+                value={filterSet}
+                onChange={(e) => setFilterSet(e.target.value)}
+                className={`w-full px-4 py-4 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-100' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+              >
+                {sets.map(set => (
+                  <option key={set} value={set}>
+                    {set === 'all' ? 'Toutes' : set}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div style={{ paddingTop: '10px', paddingBottom: '10px' }}>
+              <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
+                Rareté
+              </label>
+              <select
+                value={filterRarity}
+                onChange={(e) => setFilterRarity(e.target.value)}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-100' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
+              >
+                {rarities.map(rarity => (
+                  <option key={rarity} value={rarity}>
+                    {rarity === 'all' ? 'Toutes' : rarity}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          
+          <div className="py-4 flex flex-wrap gap-2">
+            <button
+              onClick={exportToCSV}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm md:text-base"
+            >
+              <Download className="w-4 h-4" />
+              Exporter en CSV
+            </button>
+            <button
+              onClick={generateEbayRSSFeeds}
+              className="px-6 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors flex items-center gap-2 text-sm md:text-base"
+            >
+              <Download className="w-4 h-4" />
+              Générer flux RSS eBay (OPML)
+            </button>
+          </div>
+        </div>
+
+        {/* Cards Display */}
+        <div className="space-y-8">
+          {Object.entries(groupedCards).map(([setName, cards]) => (
+            <div key={setName}>
+              {/* Extension Header */}
+              <div className={`rounded-lg shadow-md p-4 mb-4 bg-gradient-to-r border-l-4 border-indigo-500 ${
+                isDarkMode 
+                  ? 'from-indigo-900 to-gray-800' 
+                  : 'from-indigo-100 to-gray-100'
+              }`}>
+                <div className="flex items-center gap-3">
+                  {setImageMap[cards[0].setCode] && (
+                    <img 
+                      src={setImageMap[cards[0].setCode]} 
+                      alt={cards[0].setCode}
+                      className="w-8 h-8 object-contain"
+                    />
+                  )}
+                  <h2 className={`text-xl md:text-2xl font-bold ${
+                    isDarkMode ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    {setName}
+                  </h2>
+                  <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    ({cards.length} carte{cards.length > 1 ? 's' : ''})
+                  </span>
+                </div>
+              </div>
+
+              {/* Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {cards.map((card) => (
+                  <div 
+                    key={card.originalIndex}
+                    className={`rounded-lg shadow-lg overflow-hidden transition-transform hover:scale-105 ${
+                      isDarkMode ? 'bg-gray-800' : 'bg-white'
+                    }`}
+                  >
+                    {/* Card Image */}
+                    <div className="relative">
+                      {card.imageUrl ? (
+                        <img 
+                          src={card.imageUrl}
+                          alt={card.name}
+                          className="w-full h-auto object-cover"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/245x342?text=No+Image';
+                          }}
+                        />
+                      ) : (
+                        <div className={`w-full h-80 flex items-center justify-center ${
+                          isDarkMode ? 'bg-gray-700' : 'bg-gray-200'
+                        }`}>
+                          <span className={isDarkMode ? 'text-gray-500' : 'text-gray-400'}>
+                            Pas d'image
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Checkbox overlay */}
+                      <div className="absolute top-2 right-2">
+                        <input
+                          type="checkbox"
+                          checked={checkedCards.has(card.originalIndex)}
+                          onChange={() => handleCheckboxChange(card.originalIndex)}
+                          className="w-6 h-6 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Card Info */}
+                    <div className="p-4">
+                      <a 
+                        href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`block font-semibold text-lg mb-2 hover:underline ${
+                          isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                        }`}
+                      >
+                        {card.name}
+                      </a>
+                      
+                      <div className={`text-2xl font-bold ${
+                        getCachedPrice(card) !== 'N/A' 
+                          ? (isDarkMode ? 'text-green-400' : 'text-green-600')
+                          : (isDarkMode ? 'text-gray-500' : 'text-gray-400')
+                      }`}>
+                        {getCachedPrice(card)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {filteredCards.length === 0 && (
+          <div className={`text-center py-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Aucune carte trouvée avec ces critères
+          </div>
+        )}
+
+        {/* Statistiques */}
+        <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg shadow-lg p-4 text-white">
+            <div className="text-xs md:text-sm font-medium mb-1">Holo</div>
+            <div className="text-2xl md:text-3xl font-bold">
+              {cardsData.filter(c => c.rarity === 'Holo').length}
+            </div>
+          </div>
+          <div className="bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg shadow-lg p-4 text-white">
+            <div className="text-xs md:text-sm font-medium mb-1">Ultra Rare</div>
+            <div className="text-2xl md:text-3xl font-bold">
+              {cardsData.filter(c => c.rarity === 'Ultra Rare').length}
+            </div>
+          </div>
+          <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg shadow-lg p-4 text-white">
+            <div className="text-xs md:text-sm font-medium mb-1">Rare</div>
+            <div className="text-2xl md:text-3xl font-bold">
+              {cardsData.filter(c => c.rarity === 'Rare').length}
+            </div>
+          </div>
+          <div className="bg-gradient-to-br from-green-500 to-green-700 rounded-lg shadow-lg p-4 text-white">
+            <div className="text-xs md:text-sm font-medium mb-1">Extensions</div>
+            <div className="text-2xl md:text-3xl font-bold">
+              {new Set(cardsData.map(c => c.set)).size}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PokemonCardsSheet;

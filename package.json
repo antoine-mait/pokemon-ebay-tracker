@@ -1,7 +1,7 @@
 {
   "name": "pokemon-cards",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "homepage": "https://antoine-mait.github.io/pokemon-ebay-tracker/",
   "scripts": {

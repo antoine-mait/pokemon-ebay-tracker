@@ -8,8 +8,6 @@ const PokemonCardsSheet = () => {
   const [filterSet, setFilterSet] = useState('all');
   const [filterRarity, setFilterRarity] = useState('all');
   const [checkedCards, setCheckedCards] = useState(new Set());
-  const [hoveredCard, setHoveredCard] = useState(null);
-  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [cachedPrices, setCachedPrices] = useState({});
 
@@ -45,15 +43,15 @@ const PokemonCardsSheet = () => {
     'NG': 'https://www.pokecardex.com/assets/images/symboles/minis/NG.png'
   };
 
- React.useEffect(() => {
-  console.log('Loaded cached prices:', cachedPricesData);
-  setCachedPrices(cachedPricesData);
-}, []);
+  React.useEffect(() => {
+    console.log('Loaded cached prices:', cachedPricesData);
+    setCachedPrices(cachedPricesData);
+  }, []);
 
-const getCachedPrice = (card) => {
-  const searchQuery = `Pokémon ${card.name} ${card.number.replace('/', ' ')}`;
-  return cachedPrices[searchQuery] || 'N/A';
-};
+  const getCachedPrice = (card) => {
+    const searchQuery = `Pokémon ${card.name} ${card.number.replace('/', ' ')}`;
+    return cachedPrices[searchQuery] || 'N/A';
+  };
 
   const filteredCards = cardsData.filter(card => {
     const matchesSearch = card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -137,24 +135,23 @@ const getCachedPrice = (card) => {
     link.click();
   };
 
-const calculateTotalPrice = () => {
-  let total = 0;
-  let count = 0;
-  
-  filteredCards.forEach(card => {
-    const price = getCachedPrice(card);
-    if (price !== 'N/A' && price !== 'Erreur') {
-      // Extract numeric value from price string like "12.50 €"
-      const numericPrice = parseFloat(price.replace(/[^\d.,]/g, '').replace(',', '.'));
-      if (!isNaN(numericPrice)) {
-        total += numericPrice;
-        count++;
+  const calculateTotalPrice = () => {
+    let total = 0;
+    let count = 0;
+    
+    filteredCards.forEach(card => {
+      const price = getCachedPrice(card);
+      if (price !== 'N/A' && price !== 'Erreur') {
+        const numericPrice = parseFloat(price.replace(/[^\d.,]/g, '').replace(',', '.'));
+        if (!isNaN(numericPrice)) {
+          total += numericPrice;
+          count++;
+        }
       }
-    }
-  });
-  
-  return count > 0 ? `${total.toFixed(2)} €` : 'N/A';
-};
+    });
+    
+    return count > 0 ? `${total.toFixed(2)} €` : 'N/A';
+  };
 
   return (
     <div className={`w-full min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`} style={{ paddingLeft: '100px', paddingTop: '20px', paddingRight: '20px' }}>
@@ -271,142 +268,127 @@ const calculateTotalPrice = () => {
           </div>
         </div>
 
-        {/* Tableau avec séparations par extension */}
-        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md overflow-hidden`}>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gradient-to-r from-blue-700 to-blue-800 text-white">
-                <tr>
-                  <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider w-16"></th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Obtenu</th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Code</th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Numéro</th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Nom</th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Rareté</th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Prix eBay</th>
-                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Prix Préchargé</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(groupedCards).map(([setName, cards]) => (
-                  <React.Fragment key={setName}>
-                    {/* En-tête d'extension */}
-                    <tr className={`bg-gradient-to-r border-t-4 border-indigo-500 ${
-                      isDarkMode 
-                        ? 'from-indigo-900 to-gray-800' 
-                        : 'from-indigo-100 to-gray-100'
-                    }`}>
-                      <td className="px-3 py-4 align-middle text-center">
-                        {setImageMap[cards[0].setCode] && (
-                          <img 
-                            src={setImageMap[cards[0].setCode]} 
-                            alt={cards[0].setCode}
-                            className="inline-block"
-                            style={{ width: '20px', height: '20px', objectFit: 'contain' }}
-                          />
-                        )}
-                      </td>
-                      <td colSpan="7" className="py-4" style={{ textAlign: 'center' }}>
-                        <span className={`text-base md:text-lg font-extrabold ${
-                          isDarkMode ? 'text-white' : 'text-gray-900'
-                        }`} style={{ fontWeight: 'bold' }}>
-                          {setName}
-                        </span>
-                      </td>
-                    </tr>
-                    {/* Cartes de cette extension */}
-                    {cards.map((card) => (
-                      <tr key={card.originalIndex} className={`transition-colors border-b ${
-                        isDarkMode 
-                          ? 'hover:bg-gray-700 border-gray-700' 
-                          : 'hover:bg-gray-50 border-gray-200'
-                      }`}>
-                        <td className="px-3 py-3 md:py-4"></td>
-                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
-                          <input
-                            type="checkbox"
-                            checked={checkedCards.has(card.originalIndex)}
-                            onChange={() => handleCheckboxChange(card.originalIndex)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-                          />
-                        </td>
-                        <td className={`px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-mono ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                        }`}>
-                          {card.setCode}
-                        </td>
-                        <td className={`px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-mono ${
-                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                        }`}>
-                          {card.number}
-                        </td>
-                        <td 
-                          className={`px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium ${
-                            isDarkMode ? 'text-gray-100' : 'text-gray-900'
-                          }`}
-                          onMouseEnter={(e) => {
-                            setHoveredCard(card);
-                            setTooltipPosition({ x: e.clientX, y: e.clientY });
-                          }}
-                          onMouseLeave={() => setHoveredCard(null)}
-                        >
-                          <a 
-                            href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className={`hover:underline ${
-                              isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
-                            }`}
-                          >
-                            {card.name}
-                          </a>
-                        </td>
-                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
-                          <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
-                            card.rarity === 'Ultra Rare' 
-                              ? (isDarkMode ? 'bg-purple-900 text-purple-200' : 'bg-purple-200 text-purple-900') :
-                            card.rarity === 'Holo' 
-                              ? (isDarkMode ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-200 text-yellow-900') :
-                            card.rarity === 'Rare' 
-                              ? (isDarkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-200 text-blue-900') :
-                            card.rarity === 'Uncommon' 
-                              ? (isDarkMode ? 'bg-green-900 text-green-200' : 'bg-green-200 text-green-900') :
-                            (isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-700')
-                          }`}>
-                            {card.rarity}
-                          </span>
-                        </td>
-                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
-                          <button
-                            onClick={() => window.open(`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`, '_blank')}
-                            className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"
-                          >
-                            eBay
-                          </button>
-                        </td>
-                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
-                          <span className={`font-semibold ${
-                            getCachedPrice(card) !== 'N/A' 
-                              ? (isDarkMode ? 'text-green-400' : 'text-green-600')
-                              : (isDarkMode ? 'text-gray-500' : 'text-gray-400')
-                          }`}>
-                            {getCachedPrice(card)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {filteredCards.length === 0 && (
-            <div className={`text-center py-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Aucune carte trouvée avec ces critères
+        {/* Grid view with expansion separations */}
+        {Object.entries(groupedCards).map(([setName, cards]) => (
+          <div key={setName} className="mb-8">
+            {/* En-tête d'extension */}
+            <div className={`bg-gradient-to-r border-t-4 border-indigo-500 rounded-lg shadow-md p-4 mb-4 ${
+              isDarkMode 
+                ? 'from-indigo-900 to-gray-800' 
+                : 'from-indigo-100 to-gray-100'
+            }`}>
+              <div className="flex items-center justify-center gap-3">
+                {setImageMap[cards[0].setCode] && (
+                  <img 
+                    src={setImageMap[cards[0].setCode]} 
+                    alt={cards[0].setCode}
+                    className="inline-block"
+                    style={{ width: '24px', height: '24px', objectFit: 'contain' }}
+                  />
+                )}
+                <span className={`text-lg md:text-xl font-extrabold ${
+                  isDarkMode ? 'text-white' : 'text-gray-900'
+                }`}>
+                  {setName}
+                </span>
+              </div>
             </div>
-          )}
-        </div>
+
+            {/* Grid de cartes - 4 par ligne */}
+            <div className="grid grid-cols-3 md:grid-cols-7 gap-4 md:gap-6">
+              {cards.map((card) => (
+                <div 
+                  key={card.originalIndex}
+                  className={`rounded-lg shadow-lg overflow-hidden transition-transform hover:scale-105 ${
+                    isDarkMode ? 'bg-gray-800' : 'bg-white'
+                  }`}
+                >
+                  {/* Image de la carte */}
+                  <div className="relative aspect-[2/3] bg-gray-200">
+                    {card.imageUrl ? (
+                      <img 
+                        src={card.imageUrl}
+                        alt={card.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/300x420?text=No+Image';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-300">
+                        <span className="text-gray-500">No Image</span>
+                      </div>
+                    )}
+                    
+                    {/* Checkbox en haut à gauche */}
+                    <div className="absolute top-2 left-2">
+                      <input
+                        type="checkbox"
+                        checked={checkedCards.has(card.originalIndex)}
+                        onChange={() => handleCheckboxChange(card.originalIndex)}
+                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                      />
+                    </div>
+
+                    {/* Badge de rareté en haut à droite */}
+                    <div className="absolute top-2 right-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        card.rarity === 'Ultra Rare' 
+                          ? 'bg-purple-600 text-white' :
+                        card.rarity === 'Holo' 
+                          ? 'bg-yellow-500 text-gray-900' :
+                        card.rarity === 'Rare' 
+                          ? 'bg-blue-600 text-white' :
+                        card.rarity === 'Uncommon' 
+                          ? 'bg-green-600 text-white' :
+                        'bg-gray-500 text-white'
+                      }`}>
+                        {card.rarity}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Informations de la carte */}
+                  <div className="p-3">
+                    {/* Nom de la carte avec lien eBay */}
+                    <a 
+                      href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`block font-semibold text-sm mb-2 hover:underline ${
+                        isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                      }`}
+                    >
+                      {card.name}
+                    </a>
+
+                    {/* Numéro de carte */}
+                    <p className={`text-xs mb-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {card.setCode} #{card.number}
+                    </p>
+
+                    {/* Prix */}
+                    <div className="flex items-center justify-between">
+                      <span className={`text-lg font-bold ${
+                        getCachedPrice(card) !== 'N/A' 
+                          ? (isDarkMode ? 'text-green-400' : 'text-green-600')
+                          : (isDarkMode ? 'text-gray-500' : 'text-gray-400')
+                      }`}>
+                        {getCachedPrice(card)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        {filteredCards.length === 0 && (
+          <div className={`text-center py-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Aucune carte trouvée avec ces critères
+          </div>
+        )}
 
         {/* Statistiques */}
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -436,38 +418,6 @@ const calculateTotalPrice = () => {
           </div>
         </div>
       </div>
-
-     {/* Card Preview Tooltip */}
-      {hoveredCard && hoveredCard.imageUrl && (
-        <div style={{
-          position: 'fixed',
-          left: `${tooltipPosition.x + 20}px`,
-          top: `${tooltipPosition.y - 100}px`,
-          zIndex: 9999,
-          pointerEvents: 'none'
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            padding: '8px'
-          }}>
-            <img 
-              src={hoveredCard.imageUrl}
-              alt={hoveredCard.name}
-              style={{ 
-                width: '200px', 
-                height: 'auto',
-                borderRadius: '4px',
-                display: 'block'
-              }}
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

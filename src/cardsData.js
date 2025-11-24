@@ -1,13 +1,5 @@
 const cardsData = [
     {
-        "set": "Diamant & Perle : Trésors Mystérieux",
-        "setCode": "MT",
-        "number": "12/123",
-        "name": "Maganon",
-        "rarity": "Holo",
-        "imageUrl": "https://images.pokemontcg.io/dp3/12_hires.png"
-    },
-    {
         "set": "Diamant & Perle",
         "setCode": "DP",
         "number": "1/130",
@@ -168,14 +160,6 @@ const cardsData = [
         "imageUrl": "https://images.pokemontcg.io/dpp/DP30_hires.png"
     },
     {
-        "set": "Promos Black Star DP",
-        "setCode": "PROMO",
-        "number": "DP38",
-        "name": "Giratina Niv.X",
-        "rarity": "Rare",
-        "imageUrl": "https://images.pokemontcg.io/dpp/DP38_hires.png"
-    },
-    {
         "set": "EX : Gardiens du Pouvoir",
         "setCode": "PK",
         "number": "1/108",
@@ -266,14 +250,6 @@ const cardsData = [
     {
         "set": "EX : Île des Dragons",
         "setCode": "DF",
-        "number": "8/101",
-        "name": "Feunard δ Espèces Delta",
-        "rarity": "Holo",
-        "imageUrl": "https://images.pokemontcg.io/ex15/8_hires.png"
-    },
-    {
-        "set": "EX : Île des Dragons",
-        "setCode": "DF",
         "number": "95/101",
         "name": "Latias ex δ Espèces Delta",
         "rarity": "Ultra Rare",
@@ -326,14 +302,6 @@ const cardsData = [
         "name": "Tauros",
         "rarity": "Holo",
         "imageUrl": "https://images.pokemontcg.io/ex14/12_hires.png"
-    },
-    {
-        "set": "EX : Gardiens de Cristal",
-        "setCode": "CG",
-        "number": "28/100",
-        "name": "Florizarre",
-        "rarity": "Rare",
-        "imageUrl": "https://images.pokemontcg.io/ex14/28_hires.png"
     },
     {
         "set": "EX : Gardiens de Cristal",
@@ -490,22 +458,6 @@ const cardsData = [
     {
         "set": "EX : Forces Cachées",
         "setCode": "UF",
-        "number": "38/115",
-        "name": "Crocrodil",
-        "rarity": "Uncommon",
-        "imageUrl": "https://images.pokemontcg.io/ex10/38_hires.png"
-    },
-    {
-        "set": "EX : Forces Cachées",
-        "setCode": "UF",
-        "number": "78/115",
-        "name": "Kaiminus",
-        "rarity": "Common",
-        "imageUrl": "https://images.pokemontcg.io/ex10/78_hires.png"
-    },
-    {
-        "set": "EX : Forces Cachées",
-        "setCode": "UF",
         "number": "103/115",
         "name": "Aligatueur ex",
         "rarity": "Ultra Rare",
@@ -560,28 +512,12 @@ const cardsData = [
         "imageUrl": "https://images.pokemontcg.io/ex8/106_hires.png"
     },
     {
-        "set": "EX : Rouge Feu & Vert Feuille",
-        "setCode": "RFVF",
-        "number": "110/112",
-        "name": "M. Mime ex",
-        "rarity": "Ultra Rare",
-        "imageUrl": "https://images.pokemontcg.io/ex6/110_hires.png"
-    },
-    {
         "set": "EX : Légendes Oubliées",
         "setCode": "HL",
         "number": "4/101",
         "name": "Celebi obscur",
         "rarity": "Holo",
         "imageUrl": "https://images.pokemontcg.io/ex5/4_hires.png"
-    },
-    {
-        "set": "EX : Team Magma VS Team Aqua",
-        "setCode": "TMTA",
-        "number": "4/95",
-        "name": "Élecsprint de Team Aqua",
-        "rarity": "Holo",
-        "imageUrl": "https://images.pokemontcg.io/ex4/4_hires.png"
     },
     {
         "set": "EX : Team Magma VS Team Aqua",
@@ -2080,64 +2016,12 @@ const cardsData = [
         "imageUrl": "https://images.pokemontcg.io/ex1/103_hires.png"
     },
     {
-        "set": "Black Star Nintendo",
-        "setCode": "PROMO",
-        "number": "30/40",
-        "name": "Suicune",
-        "rarity": "Rare",
-        "imageUrl": null,
-        "reason": "Card not found in API"
-    },
-    {
-        "set": "Black Star Nintendo",
-        "setCode": "PROMO",
-        "number": "37/40",
-        "name": "Kyogre ex",
-        "rarity": "Rare",
-        "imageUrl": null,
-        "reason": "Card not found in API"
-    },
-    {
-        "set": "Black Star Nintendo",
-        "setCode": "PROMO",
-        "number": "38/40",
-        "name": "Groudon ex",
-        "rarity": "Rare",
-        "imageUrl": null,
-        "reason": "Card not found in API"
-    },
-    {
-        "set": "Black Star Nintendo",
-        "setCode": "PROMO",
-        "number": "39/40",
-        "name": "Rayquaza ex",
-        "rarity": "Rare",
-        "imageUrl": null,
-        "reason": "Card not found in API"
-    },
-    {
-        "set": "Skyridge",
-        "setCode": "SK",
-        "number": "H8/H32",
-        "name": "Foretress",
-        "rarity": "Holo",
-        "imageUrl": "https://images.pokemontcg.io/ecard3/H8_hires.png"
-    },
-    {
         "set": "Skyridge",
         "setCode": "SK",
         "number": "H21/H32",
         "name": "Nidoqueen",
         "rarity": "Holo",
         "imageUrl": "https://images.pokemontcg.io/ecard3/H21_hires.png"
-    },
-    {
-        "set": "Skyridge",
-        "setCode": "SK",
-        "number": "H22/H32",
-        "name": "Cochignon",
-        "rarity": "Holo",
-        "imageUrl": "https://images.pokemontcg.io/ecard3/H22_hires.png"
     },
     {
         "set": "Skyridge",
