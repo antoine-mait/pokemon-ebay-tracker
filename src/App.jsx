@@ -263,9 +263,10 @@ const PokemonCardsSheet = () => {
                         <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 font-mono">
                           {card.number}
                         </td>
-                        <td 
+                         <td 
                           className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900 relative"
-                          onMouseEnter={() => setHoveredCard(card)}
+                          onMouseEnter={(e) => setHoveredCard({ ...card, mouseX: e.clientX, mouseY: e.clientY })}
+                          onMouseMove={(e) => setHoveredCard({ ...card, mouseX: e.clientX, mouseY: e.clientY })}
                           onMouseLeave={() => setHoveredCard(null)}
                         >
                           <a 
@@ -348,13 +349,12 @@ const PokemonCardsSheet = () => {
         </div>
       </div>
 
-      {/* Card Preview Tooltip */}
+     {/* Card Preview Tooltip */}
       {hoveredCard && hoveredCard.imageUrl && (
         <div style={{
           position: 'fixed',
-          left: `calc(50% + 100px)`,
-          top: '50%',
-          transform: 'translateY(-50%)',
+          left: `${hoveredCard.mouseX + 20}px`,
+          top: `${hoveredCard.mouseY - 100}px`,
           zIndex: 9999,
           pointerEvents: 'none'
         }}>
