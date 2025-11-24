@@ -4,7 +4,7 @@ import { pokemonNameTranslation } from './pokemonFrenchToEnglish.js';
 // --- CONFIG ---
 const inputFile = "pokemon_wanted_card_global.txt";
 const apiKey = process.env.POKEMON_TCG_API_KEY;
-const CONCURRENT_REQUESTS = 10; // Number of concurrent API requests
+const CONCURRENT_REQUESTS = 60; // Number of concurrent API requests
 
 // --- DICTIONNAIRE DES RARETÉS ---
 const rarityMap = {
@@ -17,46 +17,106 @@ const rarityMap = {
 
 // Mapping of your set codes to Pokemon TCG API set codes
 const setCodeMapping = {
-    'MT': 'dp3',      // Mysterious Treasures
+    'MT': 'dp2',      // Mysterious Treasures
     'DP': 'dp1',      // Diamond & Pearl
-    'PROMO': 'dp-p',  // DP Promos
-    'PK': 'pk',       // Power Keepers
-    'DF': 'df',       // Dragon Frontiers
-    'CG': 'cg',       // Crystal Guardians
-    'HP': 'hp',       // Holon Phantoms
-    'LM': 'lm',       // Legend Maker
-    'DS': 'ds',       // Delta Species
-    'UF': 'uf',       // Unseen Forces
-    'EM': 'em',       // Emerald
-    'DX': 'dx',       // Deoxys
-    'RFVF': 'ex3',    // FireRed LeafGreen
-    'HL': 'hl',       // Hidden Legends
-    'TMTA': 'ex2',    // Team Magma vs Team Aqua
-    'DR': 'ex1',      // Dragon
-    'SS': 'ss',       // Sandstorm
-    'RS': 'rs',       // Ruby & Sapphire
-    'SK': 'sk',       // Skyridge
-    'AQ': 'aq',       // Aquapolis
-    'EX': 'ex',       // Expedition
+    'PROMO': 'dpp',   // DP Black Star Promos
+    'PK': 'ex16',     // Power Keepers
+    'DF': 'ex15',     // Dragon Frontiers
+    'CG': 'ex14',     // Crystal Guardians
+    'HP': 'ex13',     // Holon Phantoms
+    'LM': 'ex12',     // Legend Maker
+    'DS': 'ex11',     // Delta Species
+    'UF': 'ex10',     // Unseen Forces
+    'EM': 'ex9',      // Emerald
+    'DX': 'ex8',      // Deoxys
+    'RFVF': 'ex6',    // FireRed & LeafGreen
+    'HL': 'ex5',      // Hidden Legends
+    'TMTA': 'ex4',    // Team Magma vs Team Aqua
+    'DR': 'ex3',      // Dragon
+    'SS': 'ex2',      // Sandstorm
+    'RS': 'ex1',      // Ruby & Sapphire
+    'SK': 'ecard3',   // Skyridge
+    'AQ': 'ecard2',   // Aquapolis
+    'EX': 'ecard1',   // Expedition Base Set
     'N4': 'neo4',     // Neo Destiny
     'NR': 'neo3',     // Neo Revelation
     'ND': 'neo2',     // Neo Discovery
     'NG': 'neo1'      // Neo Genesis
 };
+// Function to load existing cards data if it exists
+function loadExistingCardsData() {
+    try {
+        if (fs.existsSync("cardsData.js")) {
+            console.log(`📂 Found existing cardsData.js, loading...`);
+            const fileContent = fs.readFileSync("cardsData.js", "utf8");
+            
+            // Extract the JSON data from the file
+            const jsonMatch = fileContent.match(/const cardsData = (\[[\s\S]*?\]);/);
+            if (jsonMatch) {
+                const existingData = JSON.parse(jsonMatch[1]);
+                console.log(`✅ Loaded ${existingData.length} existing cards\n`);
+                return existingData;
+            }
+        }
+    } catch (error) {
+        console.log(`⚠️  Could not load existing data: ${error.message}\n`);
+    }
+    return [];
+}
 
+// Function to check if card already exists with image URL
+function findExistingCard(card, existingCards) {
+    return existingCards.find(existing => 
+        existing.setCode === card.setCode && 
+        existing.number === card.number && 
+        existing.name === card.name &&
+        existing.imageUrl  // Must have an image URL
+    );
+}
 
 // Function to translate Pokemon name
 function translatePokemonName(frenchName) {
     // Remove any special characters or extra spaces
     const cleanName = frenchName.trim();
     
-    // Return English name if translation exists, otherwise return original
+    // Define suffixes that should be preserved (not translated)
+    const suffixes = [
+        { french: ' ex', english: ' ex' },
+        { french: ' Niv', english: ' Lv' },  // Niv.X -> Lv.X
+        { french: ' δ Espèces Delta', english: ' Delta Species' },
+        { french: ' ★', english: ' ★' },  // Star cards
+        { french: ' Prime', english: ' Prime' },
+        { french: ' LEGEND', english: ' LEGEND' }
+    ];
+    
+    // Check for suffixes
+    for (const suffix of suffixes) {
+        if (cleanName.includes(suffix.french)) {
+            // Split the name to get the Pokemon part and the suffix
+            const pokemonPart = cleanName.split(suffix.french)[0].trim();
+            
+            // Translate only the Pokemon name part
+            const translatedPokemon = pokemonNameTranslation[pokemonPart] || pokemonPart;
+            
+            // Return with the English suffix
+            return translatedPokemon + suffix.english;
+        }
+    }
+    
+    // No suffix found, translate normally
     return pokemonNameTranslation[cleanName] || cleanName;
 }
 
-// Function to fetch card image from Pokemon TCG API
-async function fetchCardImage(card, index, total) {
+// Update the fetchCardImage function to skip if already exists
+async function fetchCardImage(card, index, total, existingCards = []) {
     try {
+        // Check if card already exists with image URL
+        const existingCard = findExistingCard(card, existingCards);
+        if (existingCard) {
+            console.log(`[${index + 1}/${total}] ⏭️  ${card.name} (${card.setCode} ${card.number}) - Already exists, skipping`);
+            return existingCard;
+        }
+        
         console.log(`[${index + 1}/${total}] 🔍 ${card.name} (${card.setCode} ${card.number})`);
         
         const apiSetCode = setCodeMapping[card.setCode];
@@ -170,12 +230,16 @@ console.log(`✅ Parsed ${cardsData.length} cards from file\n`);
 
 // Fetch images from API with concurrency
 async function enrichCardsWithImages() {
+    // Load existing cards data
+    const existingCards = loadExistingCardsData();
+    
     console.log(`\n${'='.repeat(60)}`);
     console.log(`🚀 Starting API fetch with ${CONCURRENT_REQUESTS} concurrent requests`);
     console.log(`${'='.repeat(60)}\n`);
     
     const results = [];
     const total = cardsData.length;
+    let skippedCount = 0;
     
     // Process cards in batches
     for (let i = 0; i < cardsData.length; i += CONCURRENT_REQUESTS) {
@@ -188,10 +252,19 @@ async function enrichCardsWithImages() {
         
         // Fetch all cards in this batch concurrently
         const batchPromises = batch.map((card, batchIndex) => 
-            fetchCardImage(card, i + batchIndex, total)
+            fetchCardImage(card, i + batchIndex, total, existingCards)
         );
         
         const batchResults = await Promise.all(batchPromises);
+        
+        // Count skipped cards
+        batchResults.forEach(result => {
+            const existing = findExistingCard(result, existingCards);
+            if (existing && existing.imageUrl) {
+                skippedCount++;
+            }
+        });
+        
         results.push(...batchResults);
         
         saveProgress(results);
@@ -202,6 +275,7 @@ async function enrichCardsWithImages() {
         console.log(`${'─'.repeat(60)}`);
         console.log(`📊 Progress: ${results.length}/${total} cards (${Math.round(results.length/total*100)}%)`);
         console.log(`   ✅ Success: ${successCount} (${Math.round(successCount/results.length*100)}%)`);
+        console.log(`   ⏭️  Skipped: ${skippedCount}`);
         console.log(`   ❌ Failed: ${failCount} (${Math.round(failCount/results.length*100)}%)`);
         
         // Small delay between batches to avoid rate limiting
@@ -221,6 +295,7 @@ function saveProgress(results) {
     const outputJS = "const cardsData = " + JSON.stringify(results, null, 4) + ";\n\nexport default cardsData;\n";
     fs.writeFileSync("cardsData.js", outputJS, "utf8");
 }
+
 // Main execution
 async function main() {
     const startTime = Date.now();

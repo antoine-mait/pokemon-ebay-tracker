@@ -352,7 +352,7 @@ const PokemonCardsSheet = () => {
       {hoveredCard && hoveredCard.imageUrl && (
         <div style={{
           position: 'fixed',
-          right: '700px',
+          left: '700px',
           top: '50%',
           transform: 'translateY(-50%)',
           zIndex: 9999,
