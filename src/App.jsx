@@ -9,6 +9,7 @@ const PokemonCardsSheet = () => {
   const [checkedCards, setCheckedCards] = useState(new Set());
   const [hoveredCard, setHoveredCard] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const sets = ['all', ...new Set(cardsData.map(card => card.set))].sort();
   const rarities = ['all', 'Holo', 'Ultra Rare', 'Rare', 'Uncommon', 'Common'];
@@ -125,25 +126,38 @@ const PokemonCardsSheet = () => {
   };
 
   return (
-        <div className="w-full min-h-screen bg-gray-900" style={{ paddingLeft: '100px', paddingTop: '20px', paddingRight: '20px' }}>
+    <div className={`w-full min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`} style={{ paddingLeft: '100px', paddingTop: '20px', paddingRight: '20px' }}>
+      {/* Theme Toggle Button */}
+      <button
+        onClick={() => setIsDarkMode(!isDarkMode)}
+        className={`fixed top-4 right-4 z-50 p-3 rounded-full shadow-lg transition-colors ${
+          isDarkMode ? 'bg-gray-700 text-yellow-400 hover:bg-gray-600' : 'bg-white text-gray-800 hover:bg-gray-100 border-2 border-gray-300'
+        }`}
+        title={isDarkMode ? 'Mode clair' : 'Mode sombre'}
+      >
+        {isDarkMode ? '☀️' : '🌙'}
+      </button>
+
       <div className="max-w-7xl mx-auto">
         {/* En-tête */}
-        <div className="bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mb-4 md:mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 md:p-6 mb-4 md:mb-6`}>
+          <h1 className={`text-2xl md:text-3xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} mb-2`}>
             🎴 Cartes Pokémon Recherchées
           </h1>
-          <p className="text-sm md:text-base text-gray-400">Mise à jour : 23 novembre 2025</p>
-          <p className="text-lg font-semibold text-blue-400 mt-2">
+          <p className={`text-sm md:text-base ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Mise à jour : 23 novembre 2025
+          </p>
+          <p className={`text-lg font-semibold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} mt-2`}>
             Total : {filteredCards.length} cartes
             {checkedCards.size > 0 && ` • ${checkedCards.size} cochée(s)`}
           </p>
         </div>
 
         {/* Filtres et recherche */}
-        <div className="bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mb-4 md:mb-6">
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md p-4 md:p-6 mb-4 md:mb-6`}>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2" style={{ paddingTop: '10px', paddingBottom: '10px' }}>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                 <Search className="inline w-4 h-4 mr-1" />
                 Recherche
               </label>
@@ -152,19 +166,27 @@ const PokemonCardsSheet = () => {
                 placeholder="Nom ou numéro de carte..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-4 bg-gray-700 border border-gray-600 text-gray-100 placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-4 py-4 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder-gray-400' 
+                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                }`}
               />
             </div>
             
             <div style={{ paddingTop: '10px', paddingBottom: '10px' }}>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                 <Filter className="inline w-4 h-4 mr-1" />
                 Extension
               </label>
               <select
                 value={filterSet}
                 onChange={(e) => setFilterSet(e.target.value)}
-                className="w-full px-4 py-4 bg-gray-700 border border-gray-600 text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                className={`w-full px-4 py-4 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-100' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
               >
                 {sets.map(set => (
                   <option key={set} value={set}>
@@ -175,13 +197,17 @@ const PokemonCardsSheet = () => {
             </div>
             
             <div style={{ paddingTop: '10px', paddingBottom: '10px' }}>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
                 Rareté
               </label>
               <select
                 value={filterRarity}
                 onChange={(e) => setFilterRarity(e.target.value)}
-                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 text-sm ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-100' 
+                    : 'bg-white border-gray-300 text-gray-900'
+                }`}
               >
                 {rarities.map(rarity => (
                   <option key={rarity} value={rarity}>
@@ -211,7 +237,7 @@ const PokemonCardsSheet = () => {
         </div>
 
         {/* Tableau avec séparations par extension */}
-        <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden">
+        <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-lg shadow-md overflow-hidden`}>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gradient-to-r from-blue-700 to-blue-800 text-white">
@@ -229,7 +255,11 @@ const PokemonCardsSheet = () => {
                 {Object.entries(groupedCards).map(([setName, cards]) => (
                   <React.Fragment key={setName}>
                     {/* En-tête d'extension */}
-                    <tr className="bg-gradient-to-r from-indigo-900 to-gray-800 border-t-4 border-indigo-500">
+                    <tr className={`bg-gradient-to-r border-t-4 border-indigo-500 ${
+                      isDarkMode 
+                        ? 'from-indigo-900 to-gray-800' 
+                        : 'from-indigo-100 to-gray-100'
+                    }`}>
                       <td className="px-3 py-4 align-middle text-center">
                         {setImageMap[cards[0].setCode] && (
                           <img 
@@ -241,16 +271,22 @@ const PokemonCardsSheet = () => {
                         )}
                       </td>
                       <td colSpan="6" className="py-4" style={{ textAlign: 'center' }}>
-                        <span className="text-base md:text-lg font-extrabold text-white" style={{ fontWeight: 'bold' }}>
+                        <span className={`text-base md:text-lg font-extrabold ${
+                          isDarkMode ? 'text-white' : 'text-gray-900'
+                        }`} style={{ fontWeight: 'bold' }}>
                           {setName}
                         </span>
                       </td>
                     </tr>
                     {/* Cartes de cette extension */}
                     {cards.map((card) => (
-                      <tr key={card.originalIndex} className="hover:bg-gray-700 transition-colors border-b border-gray-700">
+                      <tr key={card.originalIndex} className={`transition-colors border-b ${
+                        isDarkMode 
+                          ? 'hover:bg-gray-700 border-gray-700' 
+                          : 'hover:bg-gray-50 border-gray-200'
+                      }`}>
                         <td className="px-3 py-3 md:py-4"></td>
-                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-100">
+                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
                           <input
                             type="checkbox"
                             checked={checkedCards.has(card.originalIndex)}
@@ -258,14 +294,20 @@ const PokemonCardsSheet = () => {
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                           />
                         </td>
-                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-400 font-mono">
+                        <td className={`px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-mono ${
+                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
                           {card.setCode}
                         </td>
-                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-400 font-mono">
+                        <td className={`px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-mono ${
+                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
                           {card.number}
                         </td>
                         <td 
-                          className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-100 relative"
+                          className={`px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium ${
+                            isDarkMode ? 'text-gray-100' : 'text-gray-900'
+                          }`}
                           onMouseEnter={(e) => {
                             setHoveredCard(card);
                             setTooltipPosition({ x: e.clientX, y: e.clientY });
@@ -276,18 +318,24 @@ const PokemonCardsSheet = () => {
                             href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 hover:underline"
+                            className={`hover:underline ${
+                              isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'
+                            }`}
                           >
                             {card.name}
                           </a>
                         </td>
                         <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
                           <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
-                            card.rarity === 'Ultra Rare' ? 'bg-purple-900 text-purple-200' :
-                            card.rarity === 'Holo' ? 'bg-yellow-900 text-yellow-200' :
-                            card.rarity === 'Rare' ? 'bg-blue-900 text-blue-200' :
-                            card.rarity === 'Uncommon' ? 'bg-green-900 text-green-200' :
-                            'bg-gray-700 text-gray-200'
+                            card.rarity === 'Ultra Rare' 
+                              ? (isDarkMode ? 'bg-purple-900 text-purple-200' : 'bg-purple-200 text-purple-900') :
+                            card.rarity === 'Holo' 
+                              ? (isDarkMode ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-200 text-yellow-900') :
+                            card.rarity === 'Rare' 
+                              ? (isDarkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-200 text-blue-900') :
+                            card.rarity === 'Uncommon' 
+                              ? (isDarkMode ? 'bg-green-900 text-green-200' : 'bg-green-200 text-green-900') :
+                            (isDarkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-200 text-gray-700')
                           }`}>
                             {card.rarity}
                           </span>
@@ -317,7 +365,7 @@ const PokemonCardsSheet = () => {
           </div>
           
           {filteredCards.length === 0 && (
-            <div className="text-center py-12 text-gray-400">
+            <div className={`text-center py-12 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Aucune carte trouvée avec ces critères
             </div>
           )}
