@@ -46,7 +46,7 @@ async function fetchPrice(card, index, total) {
     const { data } = await axios.get(apiUrl, {
       params: {
         q: searchQuery,
-        limit: 3,
+        limit: 10,
         filter: 'buyingOptions:{FIXED_PRICE}',
         sort: 'price'
       },
@@ -58,13 +58,23 @@ async function fetchPrice(card, index, total) {
     });
     
     if (data.itemSummaries && data.itemSummaries.length > 0) {
-      const item = data.itemSummaries[0];
-      const price = item.price?.value;
-      const currency = item.price?.currency;
+       const prices = data.itemSummaries
+        .map(item => item.price?.value)
+        .filter(price => price != null)
+        .map(price => parseFloat(price));
       
-      if (price) {
-        const formattedPrice = `${parseFloat(price).toFixed(2)} ${currency === 'EUR' ? '€' : currency}`;
-        console.log(`[${index + 1}/${total}] ✅ ${card.name}: ${formattedPrice}`);
+      if (prices.length > 0) {
+        const averagePrice = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+        const currency = data.itemSummaries[0].price?.currency;
+        
+        // Check if price is over 200€
+        if (averagePrice > 200) {
+          console.log(`[${index + 1}/${total}] 💰 ${card.name}: In your dream (${averagePrice.toFixed(2)} ${currency === 'EUR' ? '€' : currency})`);
+          return { query: searchQuery, price: 'In your dream' };
+        }
+        
+        const formattedPrice = `${averagePrice.toFixed(2)} ${currency === 'EUR' ? '€' : currency}`;
+        console.log(`[${index + 1}/${total}] ✅ ${card.name}: ${formattedPrice} (avg of ${prices.length} listings)`);
         return { query: searchQuery, price: formattedPrice };
       }
     }
@@ -80,7 +90,6 @@ async function fetchPrice(card, index, total) {
 
 async function fetchAllPrices() {
   console.log(`🚀 Starting to fetch prices for ${cardsData.length} cards...`);
-  console.log('⏱️  This will take approximately', Math.ceil(cardsData.length * 5 / 60), 'minutes\n');
   
   const priceCache = {};
   
