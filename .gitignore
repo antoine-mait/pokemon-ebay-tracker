@@ -22,7 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-generateCardsData/.env
+.env
 
 generateCardsData/pokemon_wanted_card_global.txt
 generateCardsData/cardsData.js

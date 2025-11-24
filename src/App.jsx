@@ -10,6 +10,9 @@ const PokemonCardsSheet = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [ebayPrices, setEbayPrices] = useState({});
+  const [loadingPrices, setLoadingPrices] = useState({});
+  const [cachedPrices, setCachedPrices] = useState({});
 
   const sets = ['all', ...new Set(cardsData.map(card => card.set))].sort();
   const rarities = ['all', 'Holo', 'Ultra Rare', 'Rare', 'Uncommon', 'Common'];
@@ -42,6 +45,22 @@ const PokemonCardsSheet = () => {
     'ND': 'https://www.pokecardex.com/assets/images/symboles/minis/ND.png',
     'NG': 'https://www.pokecardex.com/assets/images/symboles/minis/NG.png'
   };
+
+  React.useEffect(() => {
+  // Load all cached prices on mount
+  fetch('http://localhost:3001/api/all-prices')
+    .then(res => res.json())
+    .then(data => {
+      console.log('Loaded cached prices:', data);
+      setCachedPrices(data);
+    })
+    .catch(err => console.error('Error loading cached prices:', err));
+}, []);
+
+const getCachedPrice = (card) => {
+  const searchQuery = `Pokémon ${card.name} ${card.number.replace('/', ' ')}`;
+  return cachedPrices[searchQuery] || 'N/A';
+};
 
   const filteredCards = cardsData.filter(card => {
     const matchesSearch = card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -125,6 +144,51 @@ const PokemonCardsSheet = () => {
     link.click();
   };
 
+const fetchEbayPrice = async (card, cardIndex) => {
+  if (ebayPrices[cardIndex] || loadingPrices[cardIndex]) return;
+  
+  setLoadingPrices(prev => ({ ...prev, [cardIndex]: true }));
+  
+  try {
+    const searchQuery = `Pokémon ${card.name} ${card.number.replace('/', ' ')}`;
+    const response = await fetch(`http://localhost:3001/api/ebay-price?query=${encodeURIComponent(searchQuery)}`);
+    
+    if (!response.ok) throw new Error('Failed to fetch');
+    
+    const data = await response.json();
+    if (response.status === 429) {
+        setEbayPrices(prev => ({ ...prev, [cardIndex]: 'Patientez...' }));
+        setTimeout(() => fetchEbayPrice(card, cardIndex), 3000);
+        return;
+      }
+    setEbayPrices(prev => ({ ...prev, [cardIndex]: data.price }));
+  } catch (error) {
+    console.error('Error fetching eBay price:', error);
+    setEbayPrices(prev => ({ ...prev, [cardIndex]: 'Erreur' }));
+  } finally {
+    setLoadingPrices(prev => ({ ...prev, [cardIndex]: false }));
+  }
+};
+
+const calculateTotalPrice = () => {
+  let total = 0;
+  let count = 0;
+  
+  filteredCards.forEach(card => {
+    const price = getCachedPrice(card);
+    if (price !== 'N/A' && price !== 'Erreur') {
+      // Extract numeric value from price string like "12.50 €"
+      const numericPrice = parseFloat(price.replace(/[^\d.,]/g, '').replace(',', '.'));
+      if (!isNaN(numericPrice)) {
+        total += numericPrice;
+        count++;
+      }
+    }
+  });
+  
+  return count > 0 ? `${total.toFixed(2)} €` : 'N/A';
+};
+
   return (
     <div className={`w-full min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`} style={{ paddingLeft: '100px', paddingTop: '20px', paddingRight: '20px' }}>
       {/* Theme Toggle Button */}
@@ -150,6 +214,10 @@ const PokemonCardsSheet = () => {
           <p className={`text-lg font-semibold ${isDarkMode ? 'text-blue-400' : 'text-blue-600'} mt-2`}>
             Total : {filteredCards.length} cartes
             {checkedCards.size > 0 && ` • ${checkedCards.size} cochée(s)`}
+            {' • Prix total : '}
+            <span className={calculateTotalPrice() !== 'N/A' ? (isDarkMode ? 'text-green-400' : 'text-green-600') : ''}>
+              {calculateTotalPrice()}
+            </span>
           </p>
         </div>
 
@@ -249,6 +317,7 @@ const PokemonCardsSheet = () => {
                   <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Nom</th>
                   <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Rareté</th>
                   <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Prix eBay</th>
+                  <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Prix Préchargé</th>
                 </tr>
               </thead>
               <tbody>
@@ -342,19 +411,20 @@ const PokemonCardsSheet = () => {
                         </td>
                         <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
                           <button
-                            onClick={() => {
-                              window.open(`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`, '_blank');
-                            }}
-                            onMouseDown={(e) => {
-                              if (e.button === 1) {
-                                e.preventDefault();
-                                window.open(`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`, '_blank');
-                              }
-                            }}
-                            className="px-2 py-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded text-xs font-semibold"
+                            onClick={() => window.open(`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`, '_blank')}
+                            className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs"
                           >
-                            Voir prix
+                            eBay
                           </button>
+                        </td>
+                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
+                          <span className={`font-semibold ${
+                            getCachedPrice(card) !== 'N/A' 
+                              ? (isDarkMode ? 'text-green-400' : 'text-green-600')
+                              : (isDarkMode ? 'text-gray-500' : 'text-gray-400')
+                          }`}>
+                            {getCachedPrice(card)}
+                          </span>
                         </td>
                       </tr>
                     ))}
