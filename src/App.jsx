@@ -8,6 +8,7 @@ const PokemonCardsSheet = () => {
   const [filterRarity, setFilterRarity] = useState('all');
   const [checkedCards, setCheckedCards] = useState(new Set());
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
   const sets = ['all', ...new Set(cardsData.map(card => card.set))].sort();
   const rarities = ['all', 'Holo', 'Ultra Rare', 'Rare', 'Uncommon', 'Common'];
@@ -265,8 +266,10 @@ const PokemonCardsSheet = () => {
                         </td>
                          <td 
                           className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900 relative"
-                          onMouseEnter={(e) => setHoveredCard({ ...card, mouseX: e.clientX, mouseY: e.clientY })}
-                          onMouseMove={(e) => setHoveredCard({ ...card, mouseX: e.clientX, mouseY: e.clientY })}
+                          onMouseEnter={(e) => {
+                            setHoveredCard(card);
+                            setTooltipPosition({ x: e.clientX, y: e.clientY });
+                          }}
                           onMouseLeave={() => setHoveredCard(null)}
                         >
                           <a 
@@ -353,8 +356,8 @@ const PokemonCardsSheet = () => {
       {hoveredCard && hoveredCard.imageUrl && (
         <div style={{
           position: 'fixed',
-          left: `${hoveredCard.mouseX + 20}px`,
-          top: `${hoveredCard.mouseY - 100}px`,
+          left: `${tooltipPosition.x + 20}px`,
+          top: `${tooltipPosition.y - 100}px`,
           zIndex: 9999,
           pointerEvents: 'none'
         }}>
