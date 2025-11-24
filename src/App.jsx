@@ -352,7 +352,7 @@ const PokemonCardsSheet = () => {
       {hoveredCard && hoveredCard.imageUrl && (
         <div style={{
           position: 'fixed',
-          left: '700px',
+          left: `calc(50% + 100px)`,
           top: '50%',
           transform: 'translateY(-50%)',
           zIndex: 9999,
@@ -362,14 +362,13 @@ const PokemonCardsSheet = () => {
             backgroundColor: 'white',
             borderRadius: '8px',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            border: '4px solid #FBBF24',
             padding: '8px'
           }}>
             <img 
               src={hoveredCard.imageUrl}
               alt={hoveredCard.name}
               style={{ 
-                width: '400px', 
+                width: '200px', 
                 height: 'auto',
                 borderRadius: '4px',
                 display: 'block'
