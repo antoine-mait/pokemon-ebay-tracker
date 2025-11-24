@@ -339,7 +339,7 @@ const calculateTotalPrice = () => {
                           />
                         )}
                       </td>
-                      <td colSpan="6" className="py-4" style={{ textAlign: 'center' }}>
+                      <td colSpan="7" className="py-4" style={{ textAlign: 'center' }}>
                         <span className={`text-base md:text-lg font-extrabold ${
                           isDarkMode ? 'text-white' : 'text-gray-900'
                         }`} style={{ fontWeight: 'bold' }}>
