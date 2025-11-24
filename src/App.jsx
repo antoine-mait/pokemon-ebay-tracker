@@ -125,25 +125,25 @@ const PokemonCardsSheet = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-50" style={{ paddingLeft: '100px', paddingTop: '20px', paddingRight: '20px' }}>
+        <div className="w-full min-h-screen bg-gray-900" style={{ paddingLeft: '100px', paddingTop: '20px', paddingRight: '20px' }}>
       <div className="max-w-7xl mx-auto">
         {/* En-tête */}
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-4 md:mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
+        <div className="bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mb-4 md:mb-6">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-100 mb-2">
             🎴 Cartes Pokémon Recherchées
           </h1>
-          <p className="text-sm md:text-base text-gray-600">Mise à jour : 23 novembre 2025</p>
-          <p className="text-lg font-semibold text-blue-600 mt-2">
+          <p className="text-sm md:text-base text-gray-400">Mise à jour : 23 novembre 2025</p>
+          <p className="text-lg font-semibold text-blue-400 mt-2">
             Total : {filteredCards.length} cartes
             {checkedCards.size > 0 && ` • ${checkedCards.size} cochée(s)`}
           </p>
         </div>
 
         {/* Filtres et recherche */}
-        <div className="bg-white rounded-lg shadow-md p-4 md:p-6 mb-4 md:mb-6">
+        <div className="bg-gray-800 rounded-lg shadow-md p-4 md:p-6 mb-4 md:mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-2" style={{ paddingTop: '10px', paddingBottom: '10px' }}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 <Search className="inline w-4 h-4 mr-1" />
                 Recherche
               </label>
@@ -152,19 +152,19 @@ const PokemonCardsSheet = () => {
                 placeholder="Nom ou numéro de carte..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-4 bg-gray-700 border border-gray-600 text-gray-100 placeholder-gray-400 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             
             <div style={{ paddingTop: '10px', paddingBottom: '10px' }}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 <Filter className="inline w-4 h-4 mr-1" />
                 Extension
               </label>
               <select
                 value={filterSet}
                 onChange={(e) => setFilterSet(e.target.value)}
-                className="w-full px-4 py-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-4 py-4 bg-gray-700 border border-gray-600 text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
               >
                 {sets.map(set => (
                   <option key={set} value={set}>
@@ -175,13 +175,13 @@ const PokemonCardsSheet = () => {
             </div>
             
             <div style={{ paddingTop: '10px', paddingBottom: '10px' }}>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Rareté
               </label>
               <select
                 value={filterRarity}
                 onChange={(e) => setFilterRarity(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-4 py-2 bg-gray-700 border border-gray-600 text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
               >
                 {rarities.map(rarity => (
                   <option key={rarity} value={rarity}>
@@ -211,10 +211,10 @@ const PokemonCardsSheet = () => {
         </div>
 
         {/* Tableau avec séparations par extension */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
+        <div className="bg-gray-800 rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+              <thead className="bg-gradient-to-r from-blue-700 to-blue-800 text-white">
                 <tr>
                   <th className="px-3 py-3 text-left text-xs font-bold uppercase tracking-wider w-16"></th>
                   <th className="px-3 md:px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Obtenu</th>
@@ -229,7 +229,7 @@ const PokemonCardsSheet = () => {
                 {Object.entries(groupedCards).map(([setName, cards]) => (
                   <React.Fragment key={setName}>
                     {/* En-tête d'extension */}
-                    <tr className="bg-gradient-to-r from-indigo-100 to-purple-100 border-t-4 border-indigo-500">
+                    <tr className="bg-gradient-to-r from-indigo-900 to-gray-800 border-t-4 border-indigo-500">
                       <td className="px-3 py-4 align-middle text-center">
                         {setImageMap[cards[0].setCode] && (
                           <img 
@@ -241,16 +241,16 @@ const PokemonCardsSheet = () => {
                         )}
                       </td>
                       <td colSpan="6" className="py-4" style={{ textAlign: 'center' }}>
-                        <span className="text-base md:text-lg font-extrabold text-indigo-900" style={{ fontWeight: 'bold' }}>
+                        <span className="text-base md:text-lg font-extrabold text-white" style={{ fontWeight: 'bold' }}>
                           {setName}
                         </span>
                       </td>
                     </tr>
                     {/* Cartes de cette extension */}
                     {cards.map((card) => (
-                      <tr key={card.originalIndex} className="hover:bg-blue-50 transition-colors border-b border-gray-200">
+                      <tr key={card.originalIndex} className="hover:bg-gray-700 transition-colors border-b border-gray-700">
                         <td className="px-3 py-3 md:py-4"></td>
-                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-900">
+                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-100">
                           <input
                             type="checkbox"
                             checked={checkedCards.has(card.originalIndex)}
@@ -258,14 +258,14 @@ const PokemonCardsSheet = () => {
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
                           />
                         </td>
-                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 font-mono">
+                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-400 font-mono">
                           {card.setCode}
                         </td>
-                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-600 font-mono">
+                        <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm text-gray-400 font-mono">
                           {card.number}
                         </td>
-                         <td 
-                          className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-900 relative"
+                        <td 
+                          className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-100 relative"
                           onMouseEnter={(e) => {
                             setHoveredCard(card);
                             setTooltipPosition({ x: e.clientX, y: e.clientY });
@@ -276,18 +276,18 @@ const PokemonCardsSheet = () => {
                             href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                            className="text-blue-400 hover:text-blue-300 hover:underline"
                           >
                             {card.name}
                           </a>
                         </td>
                         <td className="px-3 md:px-6 py-3 md:py-4 text-xs md:text-sm">
                           <span className={`px-2 md:px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
-                            card.rarity === 'Ultra Rare' ? 'bg-purple-100 text-purple-800' :
-                            card.rarity === 'Holo' ? 'bg-yellow-100 text-yellow-800' :
-                            card.rarity === 'Rare' ? 'bg-blue-100 text-blue-800' :
-                            card.rarity === 'Uncommon' ? 'bg-green-100 text-green-800' :
-                            'bg-gray-100 text-gray-800'
+                            card.rarity === 'Ultra Rare' ? 'bg-purple-900 text-purple-200' :
+                            card.rarity === 'Holo' ? 'bg-yellow-900 text-yellow-200' :
+                            card.rarity === 'Rare' ? 'bg-blue-900 text-blue-200' :
+                            card.rarity === 'Uncommon' ? 'bg-green-900 text-green-200' :
+                            'bg-gray-700 text-gray-200'
                           }`}>
                             {card.rarity}
                           </span>
@@ -317,7 +317,7 @@ const PokemonCardsSheet = () => {
           </div>
           
           {filteredCards.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-gray-400">
               Aucune carte trouvée avec ces critères
             </div>
           )}
