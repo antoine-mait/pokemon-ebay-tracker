@@ -306,14 +306,21 @@ const PokemonCardsSheet = () => {
                   {/* Image de la carte */}
                   <div className="relative aspect-[2/3] bg-gray-200">
                     {card.imageUrl ? (
-                      <img 
-                        src={card.imageUrl}
-                        alt={card.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/300x420?text=No+Image';
-                        }}
-                      />
+                      <a 
+                        href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(`Pokémon ${card.name} ${card.number.replace('/', ' ')}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full h-full cursor-pointer"
+                      >
+                        <img 
+                          src={card.imageUrl}
+                          alt={card.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/300x420?text=No+Image';
+                          }}
+                        />
+                      </a>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-gray-300">
                         <span className="text-gray-500">No Image</span>
