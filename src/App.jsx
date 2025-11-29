@@ -8,6 +8,7 @@ import {
   exportPriceCacheAsJSON,
 } from "./utils/priceCache";
 import cardsDataImport from "./cardsData.js";
+import { API_URL } from './config';
 
 const PokemonCardsSheet = () => {
   const [cardsData, setCardsData] = useState(cardsDataImport);
@@ -76,7 +77,7 @@ const PokemonCardsSheet = () => {
 
   const fetchPriceForCard = async (card) => {
     try {
-      const response = await fetch("http://localhost:3001/api/fetch-price", {
+      const response = await fetch(`${API_URL}/api/fetch-price`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ card }),

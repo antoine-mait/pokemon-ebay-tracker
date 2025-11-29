@@ -4,7 +4,14 @@ import cors from 'cors';
 import uploadRoutes from './routes/uploadRoutes.js';
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://pokemon-ebay-tracker.onrender.com',
+    'https://pokemon-ebay-tracker.vercel.app'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes

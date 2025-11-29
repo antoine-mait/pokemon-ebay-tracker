@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Upload, CheckCircle, AlertCircle, Loader } from "lucide-react";
+import { API_URL } from "../config";
 
 const FileUpload = ({ onCardsGenerated, isDarkMode }) => {
   const [uploading, setUploading] = useState(false);
@@ -41,13 +42,10 @@ const FileUpload = ({ onCardsGenerated, isDarkMode }) => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const uploadResponse = await fetch(
-        "http://localhost:3001/api/upload-cards",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const uploadResponse = await fetch(`${API_URL}/api/upload-cards`, {
+        method: "POST",
+        body: formData,
+      });
 
       if (!uploadResponse.ok) throw new Error("Upload failed");
 
@@ -137,14 +135,11 @@ const FileUpload = ({ onCardsGenerated, isDarkMode }) => {
           "cards"
         );
 
-        const enrichResponse = await fetch(
-          "http://localhost:3001/api/enrich-cards",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ cards: cardsNeedingImages }),
-          }
-        );
+        const enrichResponse = await fetch(`${API_URL}/api/enrich-cards`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ cards: cardsNeedingImages }),
+        });
 
         if (!enrichResponse.ok) throw new Error("Enrichment failed");
 
