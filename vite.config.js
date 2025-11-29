@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(() => {
   // Only use base path for GitHub Pages build
   const isGitHubPages = process.env.GITHUB_PAGES === 'true';
   
