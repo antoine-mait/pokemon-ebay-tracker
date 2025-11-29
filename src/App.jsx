@@ -104,11 +104,13 @@ const PokemonCardsSheet = () => {
     return "Erreur";
   };
 
-  const fetchAllMissingPrices = async () => {
+  // Function 1: Refresh ALL prices (clears cache first)
+  const refreshAllPrices = async () => {
     setFetchingPrices(true);
 
     const cardsToRefresh = filteredCards;
 
+    // Clear cache for all cards
     setPriceCache((prevCache) => {
       const newCache = { ...prevCache };
       cardsToRefresh.forEach((card) => {
@@ -123,23 +125,61 @@ const PokemonCardsSheet = () => {
 
     setPriceProgress({ current: 0, total: cardsToRefresh.length });
 
-    const BATCH_SIZE = 100;
+    // Process ONE card at a time with delay
+    for (let i = 0; i < cardsToRefresh.length; i++) {
+      const card = cardsToRefresh[i];
 
-    for (let i = 0; i < cardsToRefresh.length; i += BATCH_SIZE) {
-      const batch = cardsToRefresh.slice(
-        i,
-        Math.min(i + BATCH_SIZE, cardsToRefresh.length)
-      );
-
-      await Promise.all(batch.map((card) => fetchPriceForCard(card)));
+      await fetchPriceForCard(card);
 
       setPriceProgress({
-        current: Math.min(i + BATCH_SIZE, cardsToRefresh.length),
+        current: i + 1,
         total: cardsToRefresh.length,
       });
 
-      if (i + BATCH_SIZE < cardsToRefresh.length) {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Add 300ms delay between each request
+      if (i < cardsToRefresh.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+    }
+
+    setFetchingPrices(false);
+    setPriceProgress({ current: 0, total: 0 });
+  };
+
+  // Function 2: Fetch ONLY missing prices (N/A or Erreur)
+  const fetchMissingPrices = async () => {
+    setFetchingPrices(true);
+
+    // Filter only cards without valid prices
+    const cardsNeedingPrices = filteredCards.filter((card) => {
+      const price = getCachedPrice(card, priceCache);
+      return price === "N/A" || price === "Erreur";
+    });
+
+    console.log(`🔍 Found ${cardsNeedingPrices.length} cards without prices`);
+
+    setPriceProgress({ current: 0, total: cardsNeedingPrices.length });
+
+    if (cardsNeedingPrices.length === 0) {
+      alert("✅ All cards already have prices!");
+      setFetchingPrices(false);
+      return;
+    }
+
+    // Process ONE card at a time with delay
+    for (let i = 0; i < cardsNeedingPrices.length; i++) {
+      const card = cardsNeedingPrices[i];
+
+      await fetchPriceForCard(card);
+
+      setPriceProgress({
+        current: i + 1,
+        total: cardsNeedingPrices.length,
+      });
+
+      // Add 300ms delay between each request
+      if (i < cardsNeedingPrices.length - 1) {
+        await new Promise((resolve) => setTimeout(resolve, 300));
       }
     }
 
@@ -430,7 +470,18 @@ const PokemonCardsSheet = () => {
             </button>
 
             <button
-              onClick={fetchAllMissingPrices}
+              onClick={fetchMissingPrices}
+              disabled={fetchingPrices}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2 text-sm md:text-base"
+            >
+              <DollarSign className="w-4 h-4" />
+              {fetchingPrices
+                ? `Fetching (${priceProgress.current}/${priceProgress.total})`
+                : "Fetch Missing Prices"}
+            </button>
+
+            <button
+              onClick={refreshAllPrices}
               disabled={fetchingPrices}
               className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center gap-2 text-sm md:text-base"
             >
