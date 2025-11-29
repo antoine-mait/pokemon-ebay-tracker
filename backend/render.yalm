@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: pokemon-cards-api
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: EBAY_APP_ID
+        sync: false
+      - key: EBAY_CERT_ID
+        sync: false
+      - key: PORT
+        value: 3001
