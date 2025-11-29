@@ -8,7 +8,14 @@ import {
   exportPriceCacheAsJSON,
 } from "./utils/priceCache";
 import cardsDataImport from "./cardsData.js";
-import { API_URL } from './config';
+import { API_URL } from "./config";
+
+const sanitizeForEbay = (text) => {
+  return text
+    .replace(/δ/g, "") // Remove delta
+    .replace(/[^\w\s-]/g, "") // Remove special chars
+    .trim();
+};
 
 const PokemonCardsSheet = () => {
   const [cardsData, setCardsData] = useState(cardsDataImport);
@@ -487,9 +494,10 @@ const PokemonCardsSheet = () => {
                     {card.imageUrl ? (
                       <a
                         href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(
-                          `Pokémon ${card.name} ${card.number.replace(
-                            "/",
-                            " "
+                          `pokemon ${sanitizeForEbay(
+                            card.name
+                          )} ${card.number.replace("/", " ")} ${sanitizeForEbay(
+                            card.set
                           )}`
                         )}`}
                         target="_blank"
@@ -545,7 +553,11 @@ const PokemonCardsSheet = () => {
                   <div className="p-3">
                     <a
                       href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(
-                        `Pokémon ${card.name} ${card.number.replace("/", " ")}`
+                        `pokemon ${sanitizeForEbay(
+                          card.name
+                        )} ${card.number.replace("/", " ")} ${sanitizeForEbay(
+                          card.set
+                        )}`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
