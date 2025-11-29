@@ -10,6 +10,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'https://pokemon-ebay-tracker.vercel.app',
+  'https://antoine-mait.github.io',
   'https://antoine-mait.github.io/pokemon-ebay-tracker',
 ];
 
