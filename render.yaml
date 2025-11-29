@@ -1,9 +1,9 @@
 services:
   - type: web
-    name: pokemon-cards-backend
-    env: node
-    buildCommand: npm install
-    startCommand: node backend/server.js
+    name: pokemon-ebay-tracker
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     envVars:
       - key: NODE_ENV
         value: production
