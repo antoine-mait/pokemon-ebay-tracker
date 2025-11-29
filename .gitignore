@@ -25,7 +25,6 @@ dist-ssr
 .env
 
 pokemon_wanted_card_global.txt
-all_sets_full.json
 checkAPI.js
 
 .vscode
