@@ -6,17 +6,19 @@ import uploadRoutes from './routes/uploadRoutes.js';
 
 const app = express();
 
-// Allow all Vercel preview URLs and your production URLs
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://your-vercel-app.vercel.app',
+  'https://antoine-mait.github.io',
+];
+
 app.use(cors({
-  origin: function(origin, callback) {
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'https://pokemon-ebay-tracker.onrender.com',
-      'https://pokemon-ebay-tracker.vercel.app'
-    ];
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
     
-    // Allow all Vercel preview URLs
-    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
