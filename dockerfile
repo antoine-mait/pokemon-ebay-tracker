@@ -1,15 +1,16 @@
-FROM node:18-alpine
+# Dockerfile
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy backend package files
+COPY backend/package*.json ./
 
 # Install dependencies
 RUN npm ci --only=production
 
 # Copy backend source
-COPY backend ./backend
+COPY backend .
 
 # Set environment to production
 ENV NODE_ENV=production
@@ -18,4 +19,4 @@ ENV NODE_ENV=production
 EXPOSE 3001
 
 # Start the server
-CMD ["node", "backend/server.js"]
+CMD ["node", "server.js"]
