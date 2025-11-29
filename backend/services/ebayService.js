@@ -3,6 +3,21 @@ import axios from 'axios';
 let cachedToken = null;
 let tokenExpiry = null;
 
+// Sanitize card name - remove special characters that cause search issues
+function sanitizeCardName(name) {
+  return name
+    .replace(/δ/g, '') // Remove delta symbol
+    .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
+    .trim();
+}
+
+// Sanitize set name - remove special characters
+function sanitizeSetName(setName) {
+  return setName
+    .replace(/[^\w\s-]/g, '')
+    .trim();
+}
+
 async function getEbayToken() {
   if (cachedToken && tokenExpiry && Date.now() < tokenExpiry) {
     return cachedToken;
@@ -35,11 +50,21 @@ async function getEbayToken() {
 
 async function getEbayPrice(card) {
   const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000; // ADD THIS LINE - 1 second delay
   
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       const token = await getEbayToken();
-      const searchQuery = `Pokémon ${card.name} ${card.number.replace('/', ' ')}`;
+      
+      // Sanitize card data
+      const cleanName = sanitizeCardName(card.name);
+      const cleanSet = sanitizeSetName(card.set);
+      const cleanNumber = card.number.replace('/', ' ');
+      
+      // Search query: pokemon {name} {number} {expansion}
+      const searchQuery = `pokemon ${cleanName} ${cleanNumber} ${cleanSet}`;
+      
+      console.log(`🔍 Searching eBay: "${searchQuery}"`);
       
       const { data } = await axios.get('https://api.ebay.com/buy/browse/v1/item_summary/search', {
         params: {
@@ -76,19 +101,32 @@ async function getEbayPrice(card) {
         }
       }
       
+      console.log(`    ⚠️ No results found for "${searchQuery}"`);
       return 'N/A';
     } catch (error) {
-      console.error(`eBay price error (attempt ${attempt + 1}/${MAX_RETRIES}):`, error.message);
+      const statusCode = error.response?.status;
+      const errorMessage = error.response?.data?.errors?.[0]?.message || error.message;
       
-      // If token error, clear cache and retry
-      if (error.response?.status === 401) {
+      console.error(`❌ eBay API error (attempt ${attempt + 1}/${MAX_RETRIES}):`, statusCode, errorMessage);
+      
+      // Handle specific error codes
+      if (statusCode === 401) {
+        // Token expired, clear cache and retry
         cachedToken = null;
         tokenExpiry = null;
+        console.log('🔄 Token expired, getting new token...');
+      } else if (statusCode === 429) {
+        // Rate limit hit - return specific error message
+        console.error('⚠️ Rate limit exceeded!');
+        return 'RATE_LIMIT_EXCEEDED';  // Special error code
+      } else if (statusCode === 500 || statusCode === 503) {
+        // Server error, retry
+        console.log('🔄 Server error, retrying...');
       }
       
-      // Wait before retry
+      // Wait before retry (except on last attempt)
       if (attempt < MAX_RETRIES - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
       }
     }
   }
@@ -96,4 +134,4 @@ async function getEbayPrice(card) {
   return 'Erreur';
 }
 
-export { getEbayPrice };
+export { getEbayPrice, sanitizeCardName, sanitizeSetName };

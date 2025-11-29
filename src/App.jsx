@@ -90,8 +90,30 @@ const PokemonCardsSheet = () => {
         body: JSON.stringify({ card }),
       });
 
+      if (response.status === 429) {
+        // Rate limit reached!
+        const data = await response.json();
+        alert(
+          `⚠️ ${
+            data.message || "API limit reached. Please try again tomorrow."
+          }`
+        );
+        setFetchingPrices(false); // Stop fetching
+        setPriceProgress({ current: 0, total: 0 });
+        return "RATE_LIMIT";
+      }
+
       if (response.ok) {
         const { price } = await response.json();
+
+        // Check if backend returned rate limit error
+        if (price === "RATE_LIMIT_EXCEEDED") {
+          alert("⚠️ eBay API limit reached! Please try again tomorrow.");
+          setFetchingPrices(false);
+          setPriceProgress({ current: 0, total: 0 });
+          return "RATE_LIMIT";
+        }
+
         setPriceCache((prevCache) => {
           const newCache = updatePriceInCache(card, price, prevCache);
           return newCache;
@@ -129,7 +151,13 @@ const PokemonCardsSheet = () => {
     for (let i = 0; i < cardsToRefresh.length; i++) {
       const card = cardsToRefresh[i];
 
-      await fetchPriceForCard(card);
+      const result = await fetchPriceForCard(card);
+
+      // Stop if rate limit reached
+      if (result === "RATE_LIMIT") {
+        console.log("⚠️ Stopping due to rate limit");
+        return; // Exit function early
+      }
 
       setPriceProgress({
         current: i + 1,
@@ -150,7 +178,6 @@ const PokemonCardsSheet = () => {
   const fetchMissingPrices = async () => {
     setFetchingPrices(true);
 
-    // Filter only cards without valid prices
     const cardsNeedingPrices = filteredCards.filter((card) => {
       const price = getCachedPrice(card, priceCache);
       return price === "N/A" || price === "Erreur";
@@ -170,7 +197,13 @@ const PokemonCardsSheet = () => {
     for (let i = 0; i < cardsNeedingPrices.length; i++) {
       const card = cardsNeedingPrices[i];
 
-      await fetchPriceForCard(card);
+      const result = await fetchPriceForCard(card);
+
+      // Stop if rate limit reached
+      if (result === "RATE_LIMIT") {
+        console.log("⚠️ Stopping due to rate limit");
+        return; // Exit function early
+      }
 
       setPriceProgress({
         current: i + 1,

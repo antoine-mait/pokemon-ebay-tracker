@@ -64,16 +64,32 @@ router.post('/enrich-cards', async (req, res) => {
 });
 
 router.post('/fetch-price', async (req, res) => {
-    try {
-        const { card } = req.body;
-        console.log(`💰 Fetching price for: ${card.name} (${card.number})`);
-        const price = await getEbayPrice(card);
-        console.log(`  💵 Price: ${price}`);
-        res.json({ price });
-    } catch (error) {
-        console.error('Price fetch error:', error);
-        res.status(500).json({ error: 'Failed to fetch price' });
+  try {
+    const { card } = req.body;
+    
+    if (!card) {
+      return res.status(400).json({ error: 'Card data required' });
     }
+
+    console.log(`💰 Fetching price for: ${card.name} ${card.set} (${card.number})`);
+    
+    const price = await getEbayPrice(card);
+    
+    // Check if rate limit was hit
+    if (price === 'RATE_LIMIT_EXCEEDED') {
+      return res.status(429).json({ 
+        error: 'RATE_LIMIT_EXCEEDED',
+        message: 'eBay API rate limit reached. Please try again tomorrow.'
+      });
+    }
+    
+    console.log(`  💵 Price: ${price}`);
+    
+    res.json({ price });
+  } catch (error) {
+    console.error('Error in /fetch-price:', error);
+    res.status(500).json({ error: 'Failed to fetch price' });
+  }
 });
 
 export default router;
