@@ -343,7 +343,10 @@ const FileUpload = ({ onCardsGenerated, isDarkMode }) => {
           <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
             magasin-date.txt
           </code>{" "}
-          file to generate the card database with images.
+          file from 
+          <a href="https://www.pokecardex.com/" className="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded">
+           pokeCardex </a>
+           to generate the card database with images.
           <br />
           <span className="text-green-600 dark:text-green-400">
             💡 Images are cached - re-uploading the same file will use saved
