@@ -4,18 +4,8 @@ let cachedToken = null;
 let tokenExpiry = null;
 
 // Sanitize card name - remove special characters that cause search issues
-function sanitizeCardName(name) {
-  return name
-    .replace(/δ/g, '') // Remove delta symbol
-    .replace(/[^\w\s-]/g, '') // Remove special characters except spaces and hyphens
-    .trim();
-}
-
-// Sanitize set name - remove special characters
-function sanitizeSetName(setName) {
-  return setName
-    .replace(/[^\w\s-]/g, '')
-    .trim();
+function removeDeltaSymbol(text) {
+  return text.replace(/Î´/g, '');
 }
 
 async function getEbayToken() {
@@ -57,11 +47,10 @@ async function getEbayPrice(card) {
       const token = await getEbayToken();
       
       // Sanitize card data
-      const cleanName = sanitizeCardName(card.name);
-      const cleanSet = sanitizeSetName(card.set);
+      const cleanName = removeDeltaSymbol(card.name);
+      const cleanSet = removeDeltaSymbol(card.set);
       const cleanNumber = card.number.replace('/', ' ');
-      
-      // Search query: pokemon {name} {number} {expansion}
+
       const searchQuery = `pokemon ${cleanName} ${cleanNumber} ${cleanSet}`;
       
       console.log(`🔍 Searching eBay: "${searchQuery}"`);
@@ -134,4 +123,4 @@ async function getEbayPrice(card) {
   return 'Erreur';
 }
 
-export { getEbayPrice, sanitizeCardName, sanitizeSetName };
+export { getEbayPrice, removeDeltaSymbol  };
