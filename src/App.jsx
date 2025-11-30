@@ -284,7 +284,8 @@ const PokemonCardsSheet = () => {
         searchQuery
       )}`;
       return {
-        title: `${card.name} (${card.number}) - ${card.set}`,
+        title: `${card.name} (${card.number})`,
+        // title: `${card.name} (${card.number}) - ${card.set}`,
         url: rssUrl,
         category: card.set,
       };

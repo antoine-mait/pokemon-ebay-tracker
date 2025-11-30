@@ -48,10 +48,11 @@ async function getEbayPrice(card) {
       
       // Sanitize card data
       const cleanName = removeDeltaSymbol(card.name);
-      const cleanSet = removeDeltaSymbol(card.set);
+      // const cleanSet = removeDeltaSymbol(card.set);
       const cleanNumber = card.number.replace('/', ' ');
 
-      const searchQuery = `pokemon ${cleanName} ${cleanNumber} ${cleanSet}`;
+      // const searchQuery = `pokemon ${cleanName} ${cleanNumber} ${cleanSet}`;
+      const searchQuery = `pokemon ${cleanName} ${cleanNumber}`;
       
       console.log(`🔍 Searching eBay: "${searchQuery}"`);
       
