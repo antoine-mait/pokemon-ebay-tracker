@@ -12,7 +12,7 @@ import { API_URL } from "./config";
 
 const sanitizeForEbay = (text) => {
   return text
-    .replace(/δ´/g, '')           // Remove delta symbol
+    .replace(/\u03B4/g, '')            // Remove delta symbol
     .replace(/Espèces Delta/gi, '') // Remove "Espèces Delta" (case insensitive)
     .trim(); 
 };
@@ -578,15 +578,8 @@ const PokemonCardsSheet = () => {
                   <div className="relative aspect-[2/3] bg-gray-200">
                     {card.imageUrl ? (
                       <a
-                        // href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(
-                        //   `pokemon ${sanitizeForEbay(
-                        //     card.name
-                        //   )} ${card.number.replace("/", " ")} ${sanitizeForEbay(
-                        //     card.set
-                        //   )}`
-                        // )}`}
                         href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(
-                          `pokemon ${sanitizeForEbay(card.name)} ${sanitizeForEbay(card.number).replace("/", " ")}`
+                          `pokemon ${sanitizeForEbay(card.name)} ${sanitizeForEbay(card.number.replace("/", " "))}`
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -641,7 +634,7 @@ const PokemonCardsSheet = () => {
                   <div className="p-3">
                     <a
                       href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(
-                        `pokemon ${sanitizeForEbay(card.name)} ${sanitizeForEbay(card.number).replace("/", " ")}`
+                        `pokemon ${sanitizeForEbay(card.name)} ${sanitizeForEbay(card.number.replace("/", " "))}`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
