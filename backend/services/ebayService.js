@@ -6,7 +6,7 @@ let tokenExpiry = null;
 // Sanitize card name - remove special characters that cause search issues
 function removeDeltaSymbol(text) {
   return text
-    .replace(/Î´/g, '')           // Remove delta symbol
+    .replace(/δ´/g, '')           // Remove delta symbol
     .replace(/Espèces Delta/gi, '') // Remove "Espèces Delta" (case insensitive)
     .trim();                        // Remove extra spaces
 }

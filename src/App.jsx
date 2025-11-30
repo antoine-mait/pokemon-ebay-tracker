@@ -12,7 +12,7 @@ import { API_URL } from "./config";
 
 const sanitizeForEbay = (text) => {
   return text
-    .replace(/Î´/g, '')           // Remove delta symbol
+    .replace(/δ´/g, '')           // Remove delta symbol
     .replace(/Espèces Delta/gi, '') // Remove "Espèces Delta" (case insensitive)
     .trim(); 
 };
