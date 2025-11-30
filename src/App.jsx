@@ -12,9 +12,9 @@ import { API_URL } from "./config";
 
 const sanitizeForEbay = (text) => {
   return text
-    .replace(/\u03B4/g, '')            // Remove delta symbol
-    .replace(/Espèces Delta/gi, '') // Remove "Espèces Delta" (case insensitive)
-    .trim(); 
+    .replace(/\u03B4/g, "") // Remove delta symbol
+    .replace(/Espèces Delta/gi, "") // Remove "Espèces Delta" (case insensitive)
+    .trim();
 };
 
 const PokemonCardsSheet = () => {
@@ -38,15 +38,27 @@ const PokemonCardsSheet = () => {
     const savedCards = localStorage.getItem("generated_cards_data");
     if (savedCards) {
       try {
-        const parsedCards = JSON.parse(savedCards);
+        let parsedCards = JSON.parse(savedCards);
+
+        // ✅ Merge prices from cache into cards
+        parsedCards = parsedCards.map((card) => {
+          const cachedPrice = getCachedPrice(card, cache);
+          return {
+            ...card,
+            price: cachedPrice !== "N/A" ? cachedPrice : card.price,
+          };
+        });
+
         setCardsData(parsedCards);
+        localStorage.setItem(
+          "generated_cards_data",
+          JSON.stringify(parsedCards)
+        );
       } catch (error) {
         console.error("Error loading saved cards:", error);
       }
     }
   }, []);
-
-  // In App.jsx, around line 48-60, update handleCardsGenerated:
 
   const handleCardsGenerated = (newCards) => {
     const existingCards = localStorage.getItem("generated_cards_data");
@@ -62,12 +74,14 @@ const PokemonCardsSheet = () => {
         mergedCards = newCards.map((card) => {
           const key = `${card.setCode}-${card.number}`;
           const existing = existingMap.get(key);
+          const cachedPrice = getCachedPrice(card, priceCache);
           if (existing && existing.imageUrl) {
             // Preserve setImageUrl from new upload (newCards), only merge imageUrl from cache
             return {
               ...card,
               imageUrl: existing.imageUrl,
               setImageUrl: card.setImageUrl, // Keep the new setImageUrl from parsed file
+              price: cachedPrice !== "N/A" ? cachedPrice : card.price,
             };
           }
           return card;
@@ -75,6 +89,15 @@ const PokemonCardsSheet = () => {
       } catch (error) {
         console.error("Error merging cards:", error);
       }
+    } else {
+      // ✅ Also add prices on first upload (no existing localStorage)
+      mergedCards = newCards.map((card) => {
+        const cachedPrice = getCachedPrice(card, priceCache);
+        return {
+          ...card,
+          price: cachedPrice !== "N/A" ? cachedPrice : card.price,
+        };
+      });
     }
 
     console.log("📊 Merged cards with setImageUrl:", mergedCards.slice(0, 3)); // Debug: check first 3 cards
@@ -218,6 +241,23 @@ const PokemonCardsSheet = () => {
 
     setFetchingPrices(false);
     setPriceProgress({ current: 0, total: 0 });
+  };
+
+  const downloadCardsDataJS = () => {
+    const savedCards = localStorage.getItem("generated_cards_data");
+    if (!savedCards) {
+      alert("No cards data found in localStorage");
+      return;
+    }
+
+    // Format as a JavaScript module
+    const jsContent = `const cardsData = ${savedCards};\n\nexport default cardsData;`;
+
+    const blob = new Blob([jsContent], { type: "text/javascript" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "cardsData.js";
+    link.click();
   };
 
   const filteredCards = cardsData.filter((card) => {
@@ -532,6 +572,14 @@ const PokemonCardsSheet = () => {
               <Save className="w-4 h-4" />
               Export Price Cache
             </button>
+
+            <button
+              onClick={downloadCardsDataJS}
+              className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors flex items-center gap-2 text-sm md:text-base"
+            >
+              <Download className="w-4 h-4" />
+              Download cardsData.js
+            </button>
           </div>
         </div>
 
@@ -579,7 +627,9 @@ const PokemonCardsSheet = () => {
                     {card.imageUrl ? (
                       <a
                         href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(
-                          `pokemon ${sanitizeForEbay(card.name)} ${sanitizeForEbay(card.number.split('/')[0])}`
+                          `pokemon ${sanitizeForEbay(
+                            card.name
+                          )} ${sanitizeForEbay(card.number.split("/")[0])}`
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -634,7 +684,9 @@ const PokemonCardsSheet = () => {
                   <div className="p-3">
                     <a
                       href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(
-                        `pokemon ${sanitizeForEbay(card.name)} ${sanitizeForEbay(card.number.split('/')[0])}`
+                        `pokemon ${sanitizeForEbay(
+                          card.name
+                        )} ${sanitizeForEbay(card.number.split("/")[0])}`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"

@@ -1,19 +1,24 @@
+import priceCacheJSON from '../priceCache.json';
 const CACHE_KEY = 'pokemon_price_cache';
 const CACHE_VERSION = '1.0';
 
 export const loadPriceCache = () => {
   try {
     const cached = localStorage.getItem(CACHE_KEY);
+    let localStorageCache = {};
+    
     if (cached) {
       const { version, data } = JSON.parse(cached);
       if (version === CACHE_VERSION) {
-        return data;
+        localStorageCache = data;
       }
     }
-    return {};
+    
+    // ✅ Merge JSON file prices with localStorage (localStorage takes priority)
+    return { ...priceCacheJSON, ...localStorageCache };
   } catch (error) {
     console.error('Error loading price cache:', error);
-    return {};
+    return priceCacheJSON; // ✅ Fallback to JSON if localStorage fails
   }
 };
 
