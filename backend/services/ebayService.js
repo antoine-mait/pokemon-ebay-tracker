@@ -52,7 +52,7 @@ async function getEbayPrice(card) {
       // Sanitize card data
       const cleanName = removeDeltaSymbol(card.name);
       // const cleanSet = removeDeltaSymbol(card.set);
-      const cleanNumber = removeDeltaSymbol(card.number).replace('/', ' ');
+      const cleanNumber = removeDeltaSymbol(card.number.split('/')[0]);
 
       // const searchQuery = `pokemon ${cleanName} ${cleanNumber} ${cleanSet}`;
       const searchQuery = `pokemon ${cleanName} ${cleanNumber}`;

@@ -579,7 +579,7 @@ const PokemonCardsSheet = () => {
                     {card.imageUrl ? (
                       <a
                         href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(
-                          `pokemon ${sanitizeForEbay(card.name)} ${sanitizeForEbay(card.number.replace("/", " "))}`
+                          `pokemon ${sanitizeForEbay(card.name)} ${sanitizeForEbay(card.number.split('/')[0])}`
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -634,7 +634,7 @@ const PokemonCardsSheet = () => {
                   <div className="p-3">
                     <a
                       href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(
-                        `pokemon ${sanitizeForEbay(card.name)} ${sanitizeForEbay(card.number.replace("/", " "))}`
+                        `pokemon ${sanitizeForEbay(card.name)} ${sanitizeForEbay(card.number.split('/')[0])}`
                       )}`}
                       target="_blank"
                       rel="noopener noreferrer"
