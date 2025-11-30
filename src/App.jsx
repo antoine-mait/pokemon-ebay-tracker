@@ -576,12 +576,17 @@ const PokemonCardsSheet = () => {
                   <div className="relative aspect-[2/3] bg-gray-200">
                     {card.imageUrl ? (
                       <a
+                        // href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(
+                        //   `pokemon ${sanitizeForEbay(
+                        //     card.name
+                        //   )} ${card.number.replace("/", " ")} ${sanitizeForEbay(
+                        //     card.set
+                        //   )}`
+                        // )}`}
                         href={`https://www.ebay.fr/sch/i.html?_nkw=${encodeURIComponent(
                           `pokemon ${sanitizeForEbay(
                             card.name
-                          )} ${card.number.replace("/", " ")} ${sanitizeForEbay(
-                            card.set
-                          )}`
+                          )} ${card.number.replace("/", " ")}`
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
