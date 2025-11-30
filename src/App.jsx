@@ -13,8 +13,6 @@ import { API_URL } from "./config";
 const sanitizeForEbay = (text) => {
   return text
     .replace(/δ/g, "") // Remove delta
-    .replace(/[^\w\s-]/g, "") // Remove special chars
-    .trim();
 };
 
 const PokemonCardsSheet = () => {
