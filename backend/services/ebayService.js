@@ -64,7 +64,7 @@ async function getEbayPrice(card) {
           q: searchQuery,
           limit: 50,
           filter: 'buyingOptions:{FIXED_PRICE}',
-          sort: 'price'
+          sort: 'relevance'
         },
         headers: {
           'Authorization': `Bearer ${token}`,
